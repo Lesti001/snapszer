@@ -19,9 +19,11 @@
   },
   "homepage": "https://github.com/Lesti001/snapszer#readme",
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "tailwindcss": "^4.1.18"
   }
 }

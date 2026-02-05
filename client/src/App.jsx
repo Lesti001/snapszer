@@ -1,15 +1,17 @@
-import { useState } from 'react'
-import Menu from './Menu'
-import './css/App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import GuestPage from './GuestPage';
+import RulesPage from './RulesPage';
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <Menu></Menu>
-    </>
-  )
+	return (
+		<Router>
+			<Routes>
+				<Route path="/" element={<GuestPage />} />
+				<Route path="/rules" element={<RulesPage />} />
+			</Routes>
+		</Router>
+	);
 }
 
-export default App
+export default App;
