@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 const cardImageSrc = "/decor-card.jpeg";
 const cardImageSrc2 = "/decor-card2.jpeg";
 
-const socket = io("http://localhost:3000", {
+const socket = io("http://192.168.1.38:3000", {
   autoConnect: false,
   reconnection: false
 });

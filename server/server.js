@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 const PORT = process.env.PORT || 3000;
 const distPath = path.join(__dirname, '..', 'client', 'dist');
 
-const rooms = [];
+const rooms = {};
 const queue = [];
 const playerNames = new Set();
 
@@ -38,9 +38,46 @@ io.on('connection', (socket) => {
     playerNames.add(name);
     socket.data.username = name;
     queue.push({
-      'name' : name,
-      'socketid' : socket.id
+      'name': name,
+      'socketid': socket.id
     });
+
+    //Creating rooms whenever 2 players are searching
+    if (queue.length >= 2) {
+      const p1 = queue.shift();
+      const p2 = queue.shift();
+
+      const socket1 = io.sockets.sockets.get(p1.socketid);
+      const socket2 = io.sockets.sockets.get(p2.socketid);
+
+      if (socket1 && socket2) {
+        const roomId = `room_${p1.socketid}_${p2.socketid}`;
+
+        socket1.join(roomId);
+        socket2.join(roomId);
+
+        socket1.data.roomId = roomId;
+        socket2.data.roomId = roomId;
+
+        rooms[roomId] = {
+          id: roomId,
+          players: [p1, p2],
+          state: 'STARTING'
+        }
+
+        io.to(roomId).emit('gameStart', {
+          roomId: roomId,
+          players: [p1.name, p2.name],
+          message: 'A játék indul!'
+        })
+      } else {
+        if (socket1) queue.unshift(p1);
+        if (socket2) queue.unshift(p2);
+      }
+
+
+    }
+
     console.log(queue);
     console.log('Játékos keres:', name);
   });
