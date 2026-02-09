@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 const cardImageSrc = "/decor-card.jpeg";
 const cardImageSrc2 = "/decor-card2.jpeg";
 
-const socket = io("http://192.168.1.38:3000", {
+const socket = io("http://localhost:3000", {
   autoConnect: false,
   reconnection: false
 });
@@ -67,7 +67,7 @@ const GuestPage = () => {
     const handleGameStart = (roomInfo) => {
       //TODO: add info to Game
       console.log("STARTGAME");
-      navigate("/game");
+      navigate("/game", {state: roomInfo});
     };
 
     socket.once('gameStart', handleGameStart);
@@ -77,7 +77,7 @@ const GuestPage = () => {
     socket.on('disconnect', handleDisconnect);
 
     return () => {
-      socket.off('gameStart', handleGameSearch);
+      socket.off('gameStart', handleGameStart);
       socket.off('connect', handleConnect);
       socket.off('error', handleError);
       socket.off('joinedQueue', handleJoined);
