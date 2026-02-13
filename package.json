@@ -4,6 +4,7 @@
   "description": "Online multiplayer snapszer game.",
   "main": "index.js",
   "scripts": {
+    "start": "node servers.js",
     "test": "echo \"Error: no test specified\""
   },
   "repository": {
