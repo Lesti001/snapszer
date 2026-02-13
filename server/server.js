@@ -9,8 +9,9 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Élesben érdemes korlátozni a kliens URL-jére
-    methods: ["GET", "POST"]
+    origin: true, // Élesben érdemes korlátozni a kliens URL-jére
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
