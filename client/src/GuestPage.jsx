@@ -8,7 +8,9 @@ const cardImageSrc2 = "/decor-card2.jpeg";
 
 const socket = io(window.location.origin, {
   autoConnect: false,
-  reconnection: false
+  reconnection: false,
+  path: "/socket.io/",
+  transports: ["websocket", "polling"]
 });
 
 const GuestPage = () => {
