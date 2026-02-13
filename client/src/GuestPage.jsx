@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 const cardImageSrc = "/decor-card.jpeg";
 const cardImageSrc2 = "/decor-card2.jpeg";
 
-const socket = io({
+const socket = io(window.location.origin, {
   autoConnect: false,
   reconnection: false
 });
