@@ -1,43 +1,92 @@
-import Card from './Card';
+import Card from './Card.js';
 
 class Player {
-  constructor(name){
+  constructor(name, socketId) {
     this.name = name;
-    this.points = 0;
+    this.socketId = socketId;
+    this.roundPoints = 0;
+    this.gamePoints = 0;
     this.hand = [];
   }
 
   drawCard(card) {
-    if (this.hand.length >= 5) {
-      throw new Error("Player has too many cards!");
-    }
-
     this.hand.push(card);
   }
 
-  addPoints(i) {
-    this.points += i;
+  resetRoundPoints(){
+    this.roundPoints = 0;
   }
 
-  removeFromHand() {
-    
+  addRoundPoints(i) {
+    this.roundPoints += i;
   }
 
-  doesPlayerHave20Or40(trumpSuit) {
-    for (let i = 0; i < this.hand.length; i++) {
-      if (this.hand[i].type === "Király" || this.hand[i].type === "Felső") {
-        for (let j = i; j < array.length; j++) {          
-          if (i !== j && this.hand[i].suit == this.hand[j].suit && (this.hand[j].type === "Felső" || this.hand[j].type === "Király")) {
-            if (this.hand[j] === trumpSuit) {
-              return 40;
-            } else {
-              return 20;
-            }            
-          }
-        }
+  clearCards() {
+    this.hand = [];
+  }
+
+  playCard(index) {
+    if (index < 0 || index >= this.hand.length) {
+      throw new Error("Invalid card index");
+    }
+
+    const playedCard = this.hand.splice(index, 1)[0];
+    return playedCard;
+  }
+
+  getAnnouncements(trumpSuit) {
+    const announcements = [];
+    const suits = ["Piros", "Tök", "Zöld", "Makk"];
+
+    for (const suit of suits) {
+      // Megkeressük a párokat
+      const king = this.hand.find(c => c.suit === suit && c.type === "Király");
+      const upper = this.hand.find(c => c.suit === suit && c.type === "Felső");
+
+      if (king && upper) {
+        announcements.push({
+          suit: suit,
+          value: (suit === trumpSuit) ? 40 : 20,
+          cards: [king, upper]
+        });
       }
     }
-    return 0;
+    
+    return announcements;
+  }
+
+  playAnnouncement(cardToPlay, trumpSuit) {
+    const possibleAnnouncements = this.getAnnouncements(trumpSuit);
+
+    const matchingAnnouncement = possibleAnnouncements.find(ann => 
+      ann.suit === cardToPlay.suit && 
+      (cardToPlay.type === "Király" || cardToPlay.type === "Felső")
+    );
+
+    if (matchingAnnouncement) {
+      const indexInHand = this.hand.findIndex(c => 
+        c.suit === cardToPlay.suit && c.type === cardToPlay.type
+      );
+
+      if (indexInHand !== -1) {
+        const playedCard = this.playCard(indexInHand);
+
+        return {
+          playedCard: playedCard,
+          announcementValue: matchingAnnouncement.value
+        };
+      }
+    }
+
+    return null;
+  }
+  
+  hasSuit(suit) {
+    return this.hand.some(c => c.suit === suit);
+  }
+
+  hasTrump(trumpSuit) {
+    return this.hand.some(c => c.suit === trumpSuit);
   }
 }
 
