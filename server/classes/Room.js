@@ -24,7 +24,16 @@ class Room {
 
     if (!player) return;
 
-    this.engine.handleMove(player, cardData);
+    const result = this.engine.handleMove(player, cardData);
+
+    if (result && !result.success) {
+      //SENDING MSG THAT MOVE IS INVALID
+      this.io.to(socketId).emit('invalidMove', { 
+        message: result.message 
+      });
+
+      return;
+    }
 
     this.broadcastState();
   }

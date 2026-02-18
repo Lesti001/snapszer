@@ -49,11 +49,15 @@ class Engine {
 
 
   handleMove(player, card){
+    if (player !== this.activePlayer) {
+      return { success: false, message: "Nem te következel!" };
+    }
+
     const cardIndex = player.hand.findIndex(c => c.suit === card.suit && c.type === card.type);
 
     if (cardIndex === -1) {
         console.error("Érvénytelen kártya: Nincs a játékos kezében!");
-        return;
+        return {success: false, message: "A kártya nincs a kezedben!"};
     }
     //PLAYER MOVES FIRST
     if (!this.boardCard) {
@@ -62,21 +66,25 @@ class Engine {
         player.addRoundPoints(announcement.announcementValue);
         
         //IF THE PLAYER WINS THE ROUND WITH THE ANNOUNCEMENT
-        const winResult = this.checkWinCondtition(player, (player === this.player1 ? this.player2 : this.player1));
+        const winResult = this.checkWinCondition(player, (player === this.player1 ? this.player2 : this.player1));
         if (winResult) {
-          return;
+          return { success: true };//PLAYER WON
         }
 
         this.boardCard = announcement.playedCard;
       } else {
         this.boardCard = player.removeCard(cardIndex);
       }
+
+      this.activePlayer = (player === this.player1) ? this.player2 : this.player1;
+
+      return { success: true };
     } else { //PLAYER MOVES SECOND
       const cardInHand = player.hand[cardIndex];
 
       if (!this.isValidMove(player, cardInHand, this.boardCard)) {
         console.error("Szabálytalan lépés! (Szín/Adu/Ütés kényszer)");
-        return;
+        return { success: false, message: "Szabálytalan lépés! (Színkényszer vagy Ütéskényszer)" };
       }
 
       const playedCard = player.removeCard(cardIndex);
@@ -111,6 +119,8 @@ class Engine {
       }
       this.boardCard = null;
       this.activePlayer = winner;
+
+      return { success: true };
     }
   }
 
@@ -156,7 +166,7 @@ class Engine {
     return true;
   }
 
-  checkWinCondtition(winner, loser){
+  checkWinCondition(winner, loser){
     if (winner.roundPoints >= 66) {
       return this.endRound(winner, loser);
     }
