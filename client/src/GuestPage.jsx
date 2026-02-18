@@ -118,7 +118,7 @@ const GuestPage = () => {
         <img
           src={cardImageSrc}
           alt="Decorative card"
-          className="w-64 md:w-96 drop-shadow-2xl"
+          className="w-64 md:w-96 drop-shadow-2xl rounded-4xl"
         />
       </div>
 
@@ -172,7 +172,7 @@ const GuestPage = () => {
         <img
           src={cardImageSrc2}
           alt="Decorative card"
-          className="w-64 md:w-96 drop-shadow-2xl"
+          className="w-64 md:w-96 drop-shadow-2xl rounded-4xl"
         />
       </div>
 
