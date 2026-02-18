@@ -25,7 +25,7 @@ class Player {
     this.hand = [];
   }
 
-  playCard(index) {
+  removeCard(index) {
     if (index < 0 || index >= this.hand.length) {
       throw new Error("Invalid card index");
     }
@@ -69,7 +69,7 @@ class Player {
       );
 
       if (indexInHand !== -1) {
-        const playedCard = this.playCard(indexInHand);
+        const playedCard = this.removeCard(indexInHand);
 
         return {
           playedCard: playedCard,
@@ -87,6 +87,10 @@ class Player {
 
   hasTrump(trumpSuit) {
     return this.hand.some(c => c.suit === trumpSuit);
+  }
+
+  hasStrongerCard(suit, valueToBeat) {
+    return this.hand.some(c => c.suit === suit && c.value > valueToBeat);
   }
 }
 

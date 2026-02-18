@@ -53,30 +53,151 @@ class Engine {
 
     if (cardIndex === -1) {
         console.error("Érvénytelen kártya: Nincs a játékos kezében!");
-        return; 
+        return;
     }
     //PLAYER MOVES FIRST
     if (!this.boardCard) {
       const announcement = player.playAnnouncement(card, this.trumpSuit);
-      if (announcement) {
+      if (announcement) {//ANNOUNCEMENT IS BEING PLAYED
         player.addRoundPoints(announcement.announcementValue);
+        
+        //IF THE PLAYER WINS THE ROUND WITH THE ANNOUNCEMENT
+        const winResult = this.checkWinCondtition(player, (player === this.player1 ? this.player2 : this.player1));
+        if (winResult) {
+          return;
+        }
+
         this.boardCard = announcement.playedCard;
       } else {
-        this.boardCard = player.playCard(cardIndex);
-        if (!this.boardCard) {
-          //TODO: HANDLE ERROR
-        }
+        this.boardCard = player.removeCard(cardIndex);
       }
     } else { //PLAYER MOVES SECOND
-      //TODO
+      const cardInHand = player.hand[cardIndex];
+
+      if (!this.isValidMove(player, cardInHand, this.boardCard)) {
+        console.error("Szabálytalan lépés! (Szín/Adu/Ütés kényszer)");
+        return;
+      }
+
+      const playedCard = player.removeCard(cardIndex);
+
+      const winningCard = this.evaluateStrongerCard(this.boardCard, playedCard);
+
+      const trickPoints = this.boardCard.value + playedCard.value;
+
+      let winner, loser;
+
+      if (winningCard === playedCard) {
+        winner = player;
+        loser = (player === this.player1) ? this.player2 : this.player1;
+      } else {
+        winner = (player === this.player1) ? this.player2 : this.player1;
+        loser = player;
+      }
+
+      winner.addRoundPoints(trickPoints);
+
+      const winResult = this.checkWinCondition(winner, loser);
+      if (winResult) return;
+
+      if (!this.deck.isEmpty() && !this.isClosed) {
+        if (!this.deck.isEmpty()) winner.drawCard(this.deck.drawCard());
+        if (!this.deck.isEmpty()) {
+          loser.drawCard(this.deck.drawCard());
+        } else if (this.trumpCard) {
+          loser.drawCard(this.trumpCard);
+          this.trumpCard = null;          
+        }
+      }
+      this.boardCard = null;
+      this.activePlayer = winner;
     }
-    
   }
 
-  evaluateStrongerCard(){
-    //TODO
+  evaluateStrongerCard(ledCard, followedCard){
+    if (ledCard.suit === followedCard.suit) {
+      return followedCard.value > ledCard.value ? followedCard : ledCard;
+    }
+
+    if (followedCard.suit === this.trumpSuit) {
+      return followedCard;
+    }
+
+    return ledCard;
   }
-  
+ 
+  isValidMove(player, cardToPlay, ledCard){
+    if (!this.deck.isEmpty() && !this.isClosed) {
+      return true;
+    }
+
+    if (player.hasSuit(ledCard.suit)) {
+      if (cardToPlay.suit !== ledCard.suit) {
+        return false;
+      }
+
+      if (player.hasStrongerCard(ledCard.suit, ledCard.value)) {
+        if (cardToPlay.value <= ledCard.value) {
+          return false; //PLAYER IS FORCED TO USE STRONGER CARD IN THE SAME SUIT
+        }
+      }
+
+      return true;
+    }
+
+    if (player.hasTrump(this.trumpSuit)) {//PLAYER IS FORCED TO USE TRUMP SUIT IF THE PLAYER HAS NO CARD OF SUIT THAT IS THE LEDCARD
+      if (cardToPlay.suit !== this.trumpSuit) {
+        return false;
+      }
+
+      return true;
+    }
+
+    return true;
+  }
+
+  checkWinCondtition(winner, loser){
+    if (winner.roundPoints >= 66) {
+      return this.endRound(winner, loser);
+    }
+
+    if (this.deck.isEmpty() && this.player1.hand.length === 0 && this.player2.hand.length === 0) {
+      return this.endRound(winner, loser, true);
+    }
+
+    return null;
+  }
+
+  endRound(winner, loser, isLastTrickWin = false) {
+    let matchPoints = 0;
+
+    if (isLastTrickWin) {
+      matchPoints = 1;
+    } else {
+      if (loser.roundPoints === 0) {
+        matchPoints = 3;
+      } else if (loser.roundPoints < 33) {
+        matchPoints = 2;
+      } else {
+        matchPoints = 1;
+      }
+    }
+
+    winner.gamePoints += matchPoints;
+
+    console.log(`KÖR VÉGE! Győztes: ${winner.name}, Kapott meccspont: ${matchPoints}`);
+    console.log(`Állás: ${this.player1.name}: ${this.player1.gamePoints} - ${this.player2.name}: ${this.player2.gamePoints}`);
+
+    if (winner.gamePoints >= 7) {
+      console.log(`Vége a mecsnek! NYERT: ${winner.name}`);
+    }
+
+    return {
+      winner: winner,
+      pointsAdded: matchPoints,
+      gameOver: winner.gamePoints >= 7
+    };
+  }
 }
 
 export default Engine;
