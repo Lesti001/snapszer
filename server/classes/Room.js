@@ -9,7 +9,7 @@ class Room {
     const p1 = new Player(player1Data.name, player1Data.socketid);
     const p2 = new Player(player2Data.name, player2Data.socketid);
 
-    this.engine = new this.engine(p1, p2);
+    this.engine = new Engine(p1, p2);
   }
 
   startGame() {
