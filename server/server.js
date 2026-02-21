@@ -86,6 +86,14 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('requestGameState', () => {
+    const roomId = socket.data.roomId;
+
+    if (roomId && rooms[roomId]) {
+      rooms[roomId].broadcastState();
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('Felhasználó kilépett', socket.id);
 

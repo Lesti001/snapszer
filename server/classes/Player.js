@@ -21,7 +21,7 @@ class Player {
     this.roundPoints += i;
   }
 
-  clearCards() {
+  clearHand() {
     this.hand = [];
   }
 

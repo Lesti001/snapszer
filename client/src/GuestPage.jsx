@@ -2,14 +2,9 @@ import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
-
+import socket from './socket';
 const cardImageSrc = "/decor-card.jpeg";
 const cardImageSrc2 = "/decor-card2.jpeg";
-
-const socket = io("http://localhost:3000", {
-  autoConnect: false,
-  reconnection: false
-});
 
 const GuestPage = () => {
   const navigate = useNavigate();

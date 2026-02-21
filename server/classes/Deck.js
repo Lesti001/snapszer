@@ -8,13 +8,14 @@ class Deck {
   generate() {
     this.cards = [];
 
-    const suits = ["Piros", "Tök", "Zöld", "Makk"];
+    const suits = ["piros", "tok", "zold", "makk"];
+    
     const types = [
-      { name: "Ász", value: 11 },
-      { name: "Tízes", value: 10 },
-      { name: "Király", value: 4 },
-      { name: "Felső", value: 3 },
-      { name: "Alsó", value: 2 }
+      { name: "asz", value: 11 },
+      { name: "tiz", value: 10 },
+      { name: "kiraly", value: 4 },
+      { name: "felso", value: 3 },
+      { name: "also", value: 2 }
     ];
 
     for (let suit of suits) {
