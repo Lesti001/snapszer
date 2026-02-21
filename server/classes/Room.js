@@ -1,5 +1,5 @@
-import Engine from './Engine';
-import Player from './Player';
+const Engine = require('./Engine');
+const Player = require('./Player');
 
 class Room {
   constructor(roomId,player1Data, player2Data, io) {
@@ -13,6 +13,12 @@ class Room {
   }
 
   startGame() {
+    this.io.to(this.roomId).emit('gameStart', {
+      roomId: this.roomId,
+      players: [this.engine.player1.name, this.engine.player2.name],
+      message: 'A játék indul!'   
+    });
+
     this.engine.startRound();
     this.broadcastState();
   }

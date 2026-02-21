@@ -1,4 +1,4 @@
-import Card from './Card.js';
+const Card = require('./Card.js');
 
 class Player {
   constructor(name, socketId) {
@@ -94,4 +94,4 @@ class Player {
   }
 }
 
-export default Player;
+module.exports = Player;

@@ -1,5 +1,5 @@
-import Deck from './Deck';
-import Player from './Player';
+const Deck = require('./Deck');
+const Player = require('./Player');
 
 class Engine {
   constructor(player1, player2){
@@ -210,4 +210,4 @@ class Engine {
   }
 }
 
-export default Engine;
+module.exports = Engine;

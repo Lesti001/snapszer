@@ -1,4 +1,4 @@
-import Card from './Card';
+const Card = require('./Card');
 
 class Deck {
   constructor() {
@@ -42,4 +42,4 @@ class Deck {
   }
 }
 
-export default Deck;
+module.exports = Deck;

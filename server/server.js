@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('node:path');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
+const Room = require('./classes/Room');
 require('dotenv').config();
 
 const app = express();
@@ -59,22 +60,15 @@ io.on('connection', (socket) => {
         socket1.data.roomId = roomId;
         socket2.data.roomId = roomId;
 
-        rooms[roomId] = {
-          id: roomId,
-          players: [p1, p2],
-          state: 'STARTING'
-        }
+        const newGameRoom = new Room(roomId, p1, p2, io);
 
-        io.to(roomId).emit('gameStart', {
-          roomId: roomId,
-          players: [p1.name, p2.name],
-          message: 'A játék indul!'
-        })
+        rooms[roomId] = newGameRoom;
+
+        newGameRoom.startGame();
       } else {
         if (socket1) queue.unshift(p1);
         if (socket2) queue.unshift(p2);
       }
-
 
     }
 
@@ -82,10 +76,29 @@ io.on('connection', (socket) => {
     console.log('Játékos keres:', name);
   });
 
+  socket.on('playerMove', (cardData) => {
+    const roomId = socket.data.roomId;
+
+    if (roomId && rooms[roomId]) {
+      rooms[roomId].handleMove(socket.id, cardData);
+    } else {
+      socket.emit('error', 'Nincs aktív játék!');
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log('Felhasználó kilépett', socket.id);
 
     const name = socket.data.username;
+    const roomId = socket.data.roomId;
+
+    if (roomId && rooms[roomId]) {
+      console.log(`Játék leáll ${roomId} szobában.`)
+
+      io.to(roomId).emit('playerLeft');
+
+      delete rooms[roomId];
+    }
 
     const queueIndex = queue.findIndex(p => p.socketid === socket.id);
 
