@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import socket from './socket'; // <-- Közös socket importálása
+import socket from './socket';
 
 const GamePage = () => {
   const location = useLocation();
@@ -10,20 +10,17 @@ const GamePage = () => {
   const [gameState, setGameState] = useState(null);
 
   useEffect(() => {
-    // Ha nincs szobainfó (pl. csak úgy beírja az URL-t), visszadobjuk a főoldalra
     if (!roomInfo) {
       navigate('/');
       return;
     }
 
-    // Feliratkozás a szervertől érkező frissítésekre
     const handleGameStateUpdate = (newState) => {
       console.log("Új játékállapot:", newState);
       setGameState(newState);
     };
 
     const handleInvalidMove = (data) => {
-      // Itt egyelőre egy egyszerű alert, de később cserélheted Toast értesítésre
       alert(data.message);
     };
 
@@ -33,7 +30,6 @@ const GamePage = () => {
     socket.on('invalidMove', handleInvalidMove);
 
     return () => {
-      // Komponens leállásakor takarítunk
       socket.off('gameStateUpdate', handleGameStateUpdate);
       socket.off('invalidMove', handleInvalidMove);
     };
@@ -57,7 +53,6 @@ const GamePage = () => {
   return (
     <div className="relative w-full h-screen bg-gray-50 overflow-hidden font-sans">
       
-      {/* --- ELLENFÉL INFORMÁCIÓS PANEL --- */}
       <div className={`absolute top-6 left-6 p-4 rounded-2xl shadow-xl w-56 z-20 transition-all ${!gameState.isMyTurn ? 'bg-[#D39696]/20 border-2 border-[#D39696]' : 'bg-[#D39696]/10 border border-[#D39696]/20'} backdrop-blur-sm`}>
         <h2 className="text-xl font-bold text-gray-700 truncate">{gameState.enemyName}</h2>
         {!gameState.isMyTurn && <span className="text-xs font-semibold text-[#D39696] uppercase tracking-wider">Ő következik</span>}
@@ -74,7 +69,6 @@ const GamePage = () => {
         </div>
       </div>
 
-      {/* --- SAJÁT INFORMÁCIÓS PANEL --- */}
       <div className={`absolute bottom-6 left-6 p-4 rounded-2xl shadow-xl w-56 z-20 transition-all ${gameState.isMyTurn ? 'bg-[#D39696]/20 border-2 border-[#D39696]' : 'bg-[#D39696]/10 border border-[#D39696]/20'} backdrop-blur-sm`}>
         <h2 className="text-xl font-bold text-gray-700">Te</h2>
         {gameState.isMyTurn && <span className="text-xs font-semibold text-[#D39696] uppercase tracking-wider">Te jössz!</span>}
@@ -91,7 +85,6 @@ const GamePage = () => {
         </div>
       </div>
 
-      {/* --- ELLENFÉL KEZE --- */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
         <div className="flex -space-x-8 md:-space-x-12">
           {[...Array(gameState.enemyHandCount)].map((_, i) => (
@@ -105,7 +98,6 @@ const GamePage = () => {
         </div>
       </div>
 
-      {/* --- ASZTAL KÖZEPE (Kijátszott lapok) --- */}
       {gameState.boardCard && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
           <img 
@@ -116,7 +108,6 @@ const GamePage = () => {
         </div>
       )}
 
-      {/* --- PAKLI ÉS ADU --- */}
       <div className="absolute top-1/2 left-4 sm:left-10 lg:left-20 -translate-y-1/2 w-48 sm:w-64 md:w-72 lg:w-80 h-auto z-10">
         {gameState.trumpCard && (
           <img 

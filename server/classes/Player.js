@@ -36,12 +36,12 @@ class Player {
 
   getAnnouncements(trumpSuit) {
     const announcements = [];
-    const suits = ["Piros", "Tök", "Zöld", "Makk"];
+    const suits = ["piros", "tok", "zold", "makk"];
 
     for (const suit of suits) {
       // Megkeressük a párokat
-      const king = this.hand.find(c => c.suit === suit && c.type === "Király");
-      const upper = this.hand.find(c => c.suit === suit && c.type === "Felső");
+      const king = this.hand.find(c => c.suit === suit && c.type === "kiraly");
+      const upper = this.hand.find(c => c.suit === suit && c.type === "felso");
 
       if (king && upper) {
         announcements.push({
@@ -60,7 +60,7 @@ class Player {
 
     const matchingAnnouncement = possibleAnnouncements.find(ann => 
       ann.suit === cardToPlay.suit && 
-      (cardToPlay.type === "Király" || cardToPlay.type === "Felső")
+      (cardToPlay.type === "felso" || cardToPlay.type === "kiraly")
     );
 
     if (matchingAnnouncement) {

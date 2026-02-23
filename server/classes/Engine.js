@@ -15,6 +15,8 @@ class Engine {
   }
 
   startRound(){
+    this.boardCard = null;
+
     this.player1.clearHand();
     this.player2.clearHand();
 
@@ -198,7 +200,11 @@ class Engine {
     console.log(`KÖR VÉGE! Győztes: ${winner.name}, Kapott meccspont: ${matchPoints}`);
     console.log(`Állás: ${this.player1.name}: ${this.player1.gamePoints} - ${this.player2.name}: ${this.player2.gamePoints}`);
 
+    this.startRound();
+
     if (winner.gamePoints >= 7) {
+      
+
       console.log(`Vége a mecsnek! NYERT: ${winner.name}`);
     }
 
