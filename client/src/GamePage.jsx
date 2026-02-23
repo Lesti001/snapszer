@@ -35,7 +35,6 @@ const GamePage = () => {
     };
   }, [roomInfo, navigate]);
 
-  // Lépés elküldése a szervernek
   const handleCardClick = (card) => {
     if (gameState.isMyTurn) {
       socket.emit('playerMove', card);
@@ -131,8 +130,7 @@ const GamePage = () => {
         ))}
       </div>
 
-      {/* --- SAJÁT KÉZ --- */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pb-4 z-30">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pb-4 z-30">
         <div className="flex -space-x-8 md:-space-x-12 hover:space-x-1 md:hover:space-x-2 transition-all duration-300 ease-in-out px-4 md:px-10 items-end">
           {gameState.myHand.map((card, i) => (
             <img 
