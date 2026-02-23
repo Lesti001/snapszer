@@ -2,16 +2,9 @@ import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io } from "socket.io-client";
-
+import socket from './socket';
 const cardImageSrc = "/decor-card.jpeg";
 const cardImageSrc2 = "/decor-card2.jpeg";
-
-const socket = io(window.location.origin, {
-  autoConnect: false,
-  reconnection: false,
-  path: "/socket.io/",
-  transports: ["websocket", "polling"]
-});
 
 const GuestPage = () => {
   const navigate = useNavigate();
@@ -120,7 +113,7 @@ const GuestPage = () => {
         <img
           src={cardImageSrc}
           alt="Decorative card"
-          className="w-64 md:w-96 drop-shadow-2xl"
+          className="w-64 md:w-96 drop-shadow-2xl rounded-4xl"
         />
       </div>
 
@@ -174,7 +167,7 @@ const GuestPage = () => {
         <img
           src={cardImageSrc2}
           alt="Decorative card"
-          className="w-64 md:w-96 drop-shadow-2xl"
+          className="w-64 md:w-96 drop-shadow-2xl rounded-4xl"
         />
       </div>
 
