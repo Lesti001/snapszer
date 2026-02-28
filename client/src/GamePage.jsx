@@ -107,9 +107,13 @@ const GamePage = () => {
         </div>
       )}
 
-      <div className="absolute top-1/2 left-4 sm:left-10 lg:left-20 -translate-y-1/2 w-48 sm:w-64 md:w-72 lg:w-80 h-auto z-10">
+      <div className="absolute top-1/2 left-4 sm:left-10 lg:left-20 -translate-y-1/2 w-48 sm:w-64 md:w-72 lg:w-80 h-auto z-10 group cursor-pointer">
         {gameState.deckCount > 0 ? (
           <>
+            <div className="absolute -top-6 left-0 sm:left-4 md:left-14 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/70 backdrop-blur-sm text-white text-sm font-semibold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none">
+              Még {gameState.deckCount} lap
+            </div>
+
             {gameState.trumpCard && (
               <img
                 src={`/cards/${gameState.trumpCard.suit}_${gameState.trumpCard.type}.png`}
@@ -123,6 +127,7 @@ const GamePage = () => {
                 key={i}
                 src="/cards/face_down.jpg"
                 alt="Pakli kártya"
+                // Az animációs osztályok eltávolítva, a lapok fixek maradnak
                 className="absolute top-1/2 -translate-y-1/2 w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md"
                 style={{
                   left: `${i * 3}px`,
