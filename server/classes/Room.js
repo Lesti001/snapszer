@@ -2,10 +2,10 @@ const Engine = require('./Engine');
 const Player = require('./Player');
 
 class Room {
-  constructor(roomId,player1Data, player2Data, io) {
+  constructor(roomId, player1Data, player2Data, io) {
     this.roomId = roomId;
     this.io = io;
-    
+
     const p1 = new Player(player1Data.name, player1Data.socketid);
     const p2 = new Player(player2Data.name, player2Data.socketid);
 
@@ -16,7 +16,7 @@ class Room {
     this.io.to(this.roomId).emit('gameStart', {
       roomId: this.roomId,
       players: [this.engine.player1.name, this.engine.player2.name],
-      message: 'A játék indul!'   
+      message: 'A játék indul!'
     });
 
     this.engine.startRound();
@@ -34,14 +34,33 @@ class Room {
 
     if (result && !result.success) {
       //SENDING MSG THAT MOVE IS INVALID
-      this.io.to(socketId).emit('invalidMove', { 
-        message: result.message 
+      this.io.to(socketId).emit('invalidMove', {
+        message: result.message
       });
 
       return;
     }
 
     this.broadcastState();
+
+    if (result.winner && result.loser && this.engine.boardCard) {
+      setTimeout(() => {
+        this.engine.evaluateTrick(result.winner, [this.engine.secondBoardCard, this.engine.boardCard]);
+
+        this.engine.boardCard = null;
+        this.engine.secondBoardCard = null;
+
+        this.engine.drawAfterTrick(result.winner, result.loser);
+
+        const isRoundOver = this.engine.checkWinCondition(result.winner, result.loser);
+
+        if (!isRoundOver) {
+          this.engine.activePlayer = result.winner;
+        }
+
+        this.broadcastState();
+      }, 2000);
+    }
   }
 
   broadcastState() {
@@ -54,21 +73,22 @@ class Room {
         myHand: player.hand,
         myPoints: player.roundPoints,
         myGamePoints: player.gamePoints,
-        
+
         enemyName: opponent.name,
         enemyHandCount: opponent.hand.length,
         enemyPoints: opponent.roundPoints,
         enemyGamePoints: opponent.gamePoints,
 
         boardCard: this.engine.boardCard,
+        secondBoardCard: this.engine.secondBoardCard,
         trumpCard: this.engine.trumpCard,
         trumpSuit: this.engine.trumpSuit,
         deckCount: this.engine.deck.cards.length,
         isClosed: this.engine.isClosed,
-        
+
         activePlayerName: this.engine.activePlayer ? this.engine.activePlayer.name : null,
         isMyTurn: this.engine.activePlayer === player,
-        
+
         gameStatus: this.engine.gameStatus,
         winnerName: (this.engine.gameStatus === 'FINISHED' && this.engine.activePlayer) ? this.engine.activePlayer.name : null
       };

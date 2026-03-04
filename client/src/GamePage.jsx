@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import socket from './socket';
 
@@ -8,6 +8,12 @@ const GamePage = () => {
   const roomInfo = location.state;
 
   const [gameState, setGameState] = useState(null);
+  
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [invalidCard, setInvalidCard] = useState(null);
+  const attemptedCardRef = useRef(null);
+  const errorToastTimeoutRef = useRef(null);
+  const invalidCardTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!roomInfo) {
@@ -16,27 +22,42 @@ const GamePage = () => {
     }
 
     const handleGameStateUpdate = (newState) => {
-      console.log("Új játékállapot:", newState);
       setGameState(newState);
+      setErrorMessage(null);
+      setInvalidCard(null);
     };
 
     const handleInvalidMove = (data) => {
-      alert(data.message);
+      setErrorMessage(data.message);
+      setInvalidCard(attemptedCardRef.current);
+
+      if (errorToastTimeoutRef.current) clearTimeout(errorToastTimeoutRef.current);
+      if (invalidCardTimeoutRef.current) clearTimeout(invalidCardTimeoutRef.current);
+
+      invalidCardTimeoutRef.current = setTimeout(() => {
+        setInvalidCard(null);
+      }, 400);
+
+      errorToastTimeoutRef.current = setTimeout(() => {
+        setErrorMessage(null);
+      }, 2000);
     };
 
     socket.on('gameStateUpdate', handleGameStateUpdate);
-
     socket.emit('requestGameState');
     socket.on('invalidMove', handleInvalidMove);
 
     return () => {
       socket.off('gameStateUpdate', handleGameStateUpdate);
       socket.off('invalidMove', handleInvalidMove);
+      if (errorToastTimeoutRef.current) clearTimeout(errorToastTimeoutRef.current);
+      if (invalidCardTimeoutRef.current) clearTimeout(invalidCardTimeoutRef.current);
     };
   }, [roomInfo, navigate]);
 
   const handleCardClick = (card) => {
     if (gameState.isMyTurn) {
+      attemptedCardRef.current = card;
       socket.emit('playerMove', card);
     }
   };
@@ -51,6 +72,30 @@ const GamePage = () => {
 
   return (
     <div className="relative w-full h-screen bg-gray-50 overflow-hidden font-sans">
+      
+      <style>
+        {`
+          @keyframes shake {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            20% { transform: translateX(-6px) rotate(-2deg); }
+            40% { transform: translateX(6px) rotate(2deg); }
+            60% { transform: translateX(-6px) rotate(-2deg); }
+            80% { transform: translateX(6px) rotate(2deg); }
+          }
+          .animate-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+          }
+        `}
+      </style>
+
+      {errorMessage && (
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 bg-red-600/95 text-white px-6 py-3 rounded-2xl shadow-[0_10px_40px_rgba(220,38,38,0.5)] z-[100] font-bold border-2 border-red-400 flex items-center space-x-3 transition-all duration-300 transform translate-y-0 opacity-100">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-lg">{errorMessage}</span>
+        </div>
+      )}
 
       <div className={`absolute top-6 left-6 p-4 rounded-2xl shadow-xl w-56 z-20 transition-all ${!gameState.isMyTurn ? 'bg-[#D39696]/20 border-2 border-[#D39696]' : 'bg-[#D39696]/10 border border-[#D39696]/20'} backdrop-blur-sm`}>
         <h2 className="text-xl font-bold text-gray-700 truncate">{gameState.enemyName}</h2>
@@ -97,13 +142,28 @@ const GamePage = () => {
         </div>
       </div>
 
-      {gameState.boardCard && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-          <img
-            src={`/cards/${gameState.boardCard.suit}_${gameState.boardCard.type}.png`}
-            alt="Kijátszott kártya"
-            className="w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-xl transform rotate-3"
-          />
+      {(gameState.boardCard || gameState.secondBoardCard) && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
+          
+          {gameState.boardCard && (
+            <img
+              src={`/cards/${gameState.boardCard.suit}_${gameState.boardCard.type}.png`}
+              alt="Első kártya"
+              className={`w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md transition-all duration-300 transform ${
+                gameState.secondBoardCard ? '-rotate-6 -translate-x-6' : 'rotate-3'
+              }`}
+              style={{ zIndex: 11 }}
+            />
+          )}
+
+          {gameState.secondBoardCard && (
+            <img
+              src={`/cards/${gameState.secondBoardCard.suit}_${gameState.secondBoardCard.type}.png`}
+              alt="Második kártya"
+              className="absolute w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-2xl transition-all duration-300 transform rotate-6 translate-x-6"
+              style={{ zIndex: 12 }}
+            />
+          )}
         </div>
       )}
 
@@ -127,7 +187,6 @@ const GamePage = () => {
                 key={i}
                 src="/cards/face_down.jpg"
                 alt="Pakli kártya"
-                // Az animációs osztályok eltávolítva, a lapok fixek maradnak
                 className="absolute top-1/2 -translate-y-1/2 w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md"
                 style={{
                   left: `${i * 3}px`,
@@ -139,7 +198,7 @@ const GamePage = () => {
         ) : (
           <div className="absolute top-1/2 -translate-y-1/2 left-0 w-16 h-16 sm:w-20 sm:h-20 bg-white/80 backdrop-blur-sm border-2 border-gray-300 rounded-xl shadow-md flex items-center justify-center">
             <img
-              src={`${gameState.trumpSuit.trim()}.png`}
+              src={`/${gameState.trumpSuit.trim()}.png`}
               alt={`${gameState.trumpSuit}`}
               className="w-10 h-10 object-contain opacity-80"
             />
@@ -147,18 +206,34 @@ const GamePage = () => {
         )}
       </div>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pb-4 z-30">
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pb-0 z-30">
         <div className="flex -space-x-8 md:-space-x-12 hover:space-x-1 md:hover:space-x-2 transition-all duration-300 ease-in-out px-4 md:px-10 items-end">
-          {gameState.myHand.map((card, i) => (
-            <img
-              key={i}
-              src={`/cards/${card.suit}_${card.type}.png`}
-              alt={`${card.suit} ${card.type}`}
-              className={`w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-lg transition-all duration-300 translate-y-[65%] hover:z-50 relative ${gameState.isMyTurn ? 'cursor-pointer hover:-translate-y-2 md:hover:-translate-y-6 hover:shadow-2xl hover:border-[#D39696]' : 'cursor-not-allowed opacity-80'}`}
-              style={{ zIndex: i }}
-              onClick={() => handleCardClick(card)}
-            />
-          ))}
+          {gameState.myHand.map((card, i) => {
+            const isThisCardInvalid = invalidCard && invalidCard.suit === card.suit && invalidCard.type === card.type;
+
+            return (
+              <div
+                key={i}
+                className={`relative w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] transition-all duration-300 translate-y-[65%] ${
+                  gameState.isMyTurn 
+                    ? 'cursor-pointer hover:-translate-y-2 md:hover:-translate-y-6 hover:z-50' 
+                    : 'cursor-not-allowed opacity-80'
+                }`}
+                style={{ zIndex: isThisCardInvalid ? 100 : i }}
+                onClick={() => handleCardClick(card)}
+              >
+                <img
+                  src={`/cards/${card.suit}_${card.type}.png`}
+                  alt={`${card.suit} ${card.type}`}
+                  className={`w-full h-full object-cover rounded-xl transition-all duration-300 ${
+                    isThisCardInvalid 
+                      ? 'border-4 border-red-600 animate-shake shadow-[0_0_30px_rgba(220,38,38,1)]' 
+                      : 'border-2 border-gray-300 shadow-lg hover:shadow-2xl hover:border-[#D39696]'
+                  }`}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
