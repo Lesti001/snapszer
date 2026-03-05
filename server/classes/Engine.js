@@ -2,7 +2,7 @@ const Deck = require('./Deck');
 const Player = require('./Player');
 
 class Engine {
-  constructor(player1, player2){
+  constructor(player1, player2) {
     this.player1 = player1;
     this.player2 = player2;
     this.trumpSuit = null;
@@ -10,11 +10,12 @@ class Engine {
     this.isClosed = false;
     this.trumpCard;
     this.boardCard = null;
+    this.secondBoardCard = null;
     this.activePlayer = null;
     this.lastRoundStartingPlayer = null;
   }
 
-  startRound(){
+  startRound() {
     this.boardCard = null;
 
     this.player1.clearHand();
@@ -36,7 +37,7 @@ class Engine {
     this.trumpSuit = this.trumpCard.suit;
 
     if (!this.lastRoundStartingPlayer) {
-      this.activePlayer = this.player1; 
+      this.activePlayer = this.player1;
       this.lastRoundStartingPlayer = this.player1;
     } else {
       if (this.player1 === this.lastRoundStartingPlayer) {
@@ -46,11 +47,25 @@ class Engine {
         this.activePlayer = this.player1;
         this.lastRoundStartingPlayer = this.player1;
       }
-    }  
+    }
   }
 
+  switchTrumpCard(player) {
+    if (player && this.activePlayer === player) {
+      const cardToSwitchIndex = player.hand.findIndex(item => (item.suit === this.trumpSuit && item.type === 'also'));
 
-  handleMove(player, card){
+      if (cardToSwitchIndex !== -1 && this.trumpCard) {
+        const cardToSwitch = player.removeCard(cardToSwitchIndex);
+        player.hand.push(this.trumpCard);
+        this.trumpCard = cardToSwitch;
+        return { success: true };
+      }
+    }
+
+    return { success: false };
+  }
+
+  handleMove(player, card) {
     if (player !== this.activePlayer) {
       return { success: false, message: "Nem te következel!" };
     }
@@ -58,19 +73,19 @@ class Engine {
     const cardIndex = player.hand.findIndex(c => c.suit === card.suit && c.type === card.type);
 
     if (cardIndex === -1) {
-        console.error("Érvénytelen kártya: Nincs a játékos kezében!");
-        return {success: false, message: "A kártya nincs a kezedben!"};
+      console.error("Érvénytelen kártya: Nincs a játékos kezében!");
+      return { success: false, message: "A kártya nincs a kezedben!" };
     }
     //PLAYER MOVES FIRST
     if (!this.boardCard) {
       const announcement = player.playAnnouncement(card, this.trumpSuit);
       if (announcement) {//ANNOUNCEMENT IS BEING PLAYED
         player.addRoundPoints(announcement.announcementValue);
-        
+
         //IF THE PLAYER WINS THE ROUND WITH THE ANNOUNCEMENT
         const winResult = this.checkWinCondition(player, (player === this.player1 ? this.player2 : this.player1));
         if (winResult) {
-          return { success: true };//PLAYER WON
+          return { success: true, isRoundOver: winResult };//PLAYER WON
         }
 
         this.boardCard = announcement.playedCard;
@@ -91,6 +106,8 @@ class Engine {
 
       const playedCard = player.removeCard(cardIndex);
 
+      this.secondBoardCard = playedCard;
+
       const winningCard = this.evaluateStrongerCard(this.boardCard, playedCard);
 
       const trickPoints = this.boardCard.value + playedCard.value;
@@ -105,28 +122,39 @@ class Engine {
         loser = player;
       }
 
-      winner.addRoundPoints(trickPoints);
+      this.activePlayer = null;
 
-      const winResult = this.checkWinCondition(winner, loser);
-      if (winResult) return;
-
-      if (!this.deck.isEmpty() && !this.isClosed) {
-        if (!this.deck.isEmpty()) winner.drawCard(this.deck.drawCard());
-        if (!this.deck.isEmpty()) {
-          loser.drawCard(this.deck.drawCard());
-        } else if (this.trumpCard) {
-          loser.drawCard(this.trumpCard);
-          this.trumpCard = null;          
-        }
-      }
-      this.boardCard = null;
-      this.activePlayer = winner;
-
-      return { success: true };
+      return {
+        success: true,
+        winner: winner,
+        loser: loser,
+      };
     }
   }
 
-  evaluateStrongerCard(ledCard, followedCard){
+  evaluateTrick(player, cards) {
+    if (!cards[0] || !cards[1]) {
+      console.log("ERROR: no cards in evaluate trick");
+      return;
+    }
+
+    const winningPoints = cards[0].value + cards[1].value;
+    player.addRoundPoints(winningPoints);
+  }
+
+  drawAfterTrick(winner, loser) {
+    if (!this.deck.isEmpty() && !this.isClosed) {
+      if (!this.deck.isEmpty()) winner.drawCard(this.deck.drawCard());
+      if (!this.deck.isEmpty()) {
+        loser.drawCard(this.deck.drawCard());
+      } else if (this.trumpCard) {
+        loser.drawCard(this.trumpCard);
+        this.trumpCard = null;
+      }
+    }
+  }
+
+  evaluateStrongerCard(ledCard, followedCard) {
     if (ledCard.suit === followedCard.suit) {
       return followedCard.value > ledCard.value ? followedCard : ledCard;
     }
@@ -137,8 +165,8 @@ class Engine {
 
     return ledCard;
   }
- 
-  isValidMove(player, cardToPlay, ledCard){
+
+  isValidMove(player, cardToPlay, ledCard) {
     if (!this.deck.isEmpty() && !this.isClosed) {
       return true;
     }
@@ -168,7 +196,7 @@ class Engine {
     return true;
   }
 
-  checkWinCondition(winner, loser){
+  checkWinCondition(winner, loser) {
     if (winner.roundPoints >= 66) {
       return this.endRound(winner, loser);
     }
@@ -203,7 +231,6 @@ class Engine {
     this.startRound();
 
     if (winner.gamePoints >= 7) {
-      
 
       console.log(`Vége a mecsnek! NYERT: ${winner.name}`);
     }
