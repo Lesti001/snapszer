@@ -11,9 +11,14 @@ const GamePage = () => {
   
   const [errorMessage, setErrorMessage] = useState(null);
   const [invalidCard, setInvalidCard] = useState(null);
+  const [invalidTrump, setInvalidTrump] = useState(false);
+  const [matchResult, setMatchResult] = useState(null); // Játék vége állapot
+  
   const attemptedCardRef = useRef(null);
   const errorToastTimeoutRef = useRef(null);
   const invalidCardTimeoutRef = useRef(null);
+  const invalidTrumpTimeoutRef = useRef(null);
+  const matchEndTimeoutRef = useRef(null); // Játék vége időzítő
 
   useEffect(() => {
     if (!roomInfo) {
@@ -25,6 +30,7 @@ const GamePage = () => {
       setGameState(newState);
       setErrorMessage(null);
       setInvalidCard(null);
+      setInvalidTrump(false);
     };
 
     const handleInvalidMove = (data) => {
@@ -36,29 +42,63 @@ const GamePage = () => {
 
       invalidCardTimeoutRef.current = setTimeout(() => {
         setInvalidCard(null);
-      }, 400);
+      }, 500);
 
       errorToastTimeoutRef.current = setTimeout(() => {
         setErrorMessage(null);
-      }, 2000);
+      }, 2500);
+    };
+
+    const handleInvalidSwitch = () => {
+      setInvalidTrump(true);
+      
+      if (invalidTrumpTimeoutRef.current) clearTimeout(invalidTrumpTimeoutRef.current);
+      
+      invalidTrumpTimeoutRef.current = setTimeout(() => {
+        setInvalidTrump(false);
+      }, 500);
+    };
+
+    const handleMatchEnded = (data) => {
+      setMatchResult(data.isWinner);
+      
+      if (matchEndTimeoutRef.current) clearTimeout(matchEndTimeoutRef.current);
+      
+      matchEndTimeoutRef.current = setTimeout(() => {
+        navigate('/');
+      }, 4000);
     };
 
     socket.on('gameStateUpdate', handleGameStateUpdate);
     socket.emit('requestGameState');
     socket.on('invalidMove', handleInvalidMove);
+    socket.on('invalidSwitch', handleInvalidSwitch);
+    socket.on('matchEnded', handleMatchEnded); // Feliratkozás a meccs végére
 
     return () => {
       socket.off('gameStateUpdate', handleGameStateUpdate);
       socket.off('invalidMove', handleInvalidMove);
+      socket.off('invalidSwitch', handleInvalidSwitch);
+      socket.off('matchEnded', handleMatchEnded);
       if (errorToastTimeoutRef.current) clearTimeout(errorToastTimeoutRef.current);
       if (invalidCardTimeoutRef.current) clearTimeout(invalidCardTimeoutRef.current);
+      if (invalidTrumpTimeoutRef.current) clearTimeout(invalidTrumpTimeoutRef.current);
+      if (matchEndTimeoutRef.current) clearTimeout(matchEndTimeoutRef.current);
     };
   }, [roomInfo, navigate]);
 
   const handleCardClick = (card) => {
-    if (gameState.isMyTurn) {
+    // Csak akkor léphet, ha nincs vége a játéknak
+    if (gameState.isMyTurn && matchResult === null) {
       attemptedCardRef.current = card;
       socket.emit('playerMove', card);
+    }
+  };
+
+  const handleTrumpClick = () => {
+    // Csak akkor cserélhet, ha nincs vége a játéknak
+    if (gameState.isMyTurn && matchResult === null) {
+      socket.emit('switchTrumpCard');
     }
   };
 
@@ -76,11 +116,11 @@ const GamePage = () => {
       <style>
         {`
           @keyframes shake {
-            0%, 100% { transform: translateX(0) rotate(0); }
-            20% { transform: translateX(-6px) rotate(-2deg); }
-            40% { transform: translateX(6px) rotate(2deg); }
-            60% { transform: translateX(-6px) rotate(-2deg); }
-            80% { transform: translateX(6px) rotate(2deg); }
+            0%, 100% { transform: translate(0, var(--tw-translate-y)) rotate(0); }
+            20% { transform: translate(-6px, var(--tw-translate-y)) rotate(-2deg); }
+            40% { transform: translate(6px, var(--tw-translate-y)) rotate(2deg); }
+            60% { transform: translate(-6px, var(--tw-translate-y)) rotate(-2deg); }
+            80% { transform: translate(6px, var(--tw-translate-y)) rotate(2deg); }
           }
           .animate-shake {
             animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
@@ -88,7 +128,20 @@ const GamePage = () => {
         `}
       </style>
 
-      {errorMessage && (
+      {/* Játék vége képernyő (Overlay) */}
+      {matchResult !== null && (
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-md z-[200] flex flex-col items-center justify-center">
+          <div className={`text-6xl md:text-8xl font-black mb-6 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] ${matchResult ? 'text-green-400' : 'text-red-500'}`}>
+            {matchResult ? 'GYŐZTÉL!' : 'VESZTETTÉL!'}
+          </div>
+          <p className="text-white/80 text-xl font-semibold tracking-widest animate-pulse">
+            Visszatérés a főoldalra...
+          </p>
+        </div>
+      )}
+
+      {/* Hibaüzenet csak akkor jelenik meg, ha a játék még megy */}
+      {errorMessage && matchResult === null && (
         <div className="absolute top-12 left-1/2 -translate-x-1/2 bg-red-600/95 text-white px-6 py-3 rounded-2xl shadow-[0_10px_40px_rgba(220,38,38,0.5)] z-[100] font-bold border-2 border-red-400 flex items-center space-x-3 transition-all duration-300 transform translate-y-0 opacity-100">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -175,11 +228,20 @@ const GamePage = () => {
             </div>
 
             {gameState.trumpCard && (
-              <img
-                src={`/cards/${gameState.trumpCard.suit}_${gameState.trumpCard.type}.png`}
-                alt="Adu lap"
-                className="absolute top-1/2 -translate-y-1/2 left-12 sm:left-16 md:left-20 lg:left-24 w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-sm rotate-90"
-              />
+              <div className="absolute top-1/2 -translate-y-1/2 left-12 sm:left-16 md:left-20 lg:left-24 w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] rotate-90 z-">
+                <img
+                  src={`/cards/${gameState.trumpCard.suit}_${gameState.trumpCard.type}.png`}
+                  alt="Adu lap"
+                  onClick={handleTrumpClick}
+                  className={`w-full h-full object-cover rounded-xl transition-all duration-300 ${
+                    invalidTrump
+                      ? 'border-4 border-red-600 animate-shake shadow-[0_0_30px_rgba(220,38,38,1)]'
+                      : 'border-2 border-gray-300 shadow-sm'
+                  } ${
+                    gameState.isMyTurn && matchResult === null ? 'cursor-pointer hover:shadow-xl hover:border-[#D39696]' : ''
+                  }`}
+                />
+              </div>
             )}
 
             {[...Array(gameState.deckCount)].map((_, i) => (
@@ -187,7 +249,7 @@ const GamePage = () => {
                 key={i}
                 src="/cards/face_down.jpg"
                 alt="Pakli kártya"
-                className="absolute top-1/2 -translate-y-1/2 w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md"
+                className="absolute top-1/2 -translate-y-1/2 w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md pointer-events-none"
                 style={{
                   left: `${i * 3}px`,
                   zIndex: i + 10
@@ -214,8 +276,9 @@ const GamePage = () => {
             return (
               <div
                 key={i}
-                className={`relative w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] transition-all duration-300 translate-y-[65%] ${
-                  gameState.isMyTurn 
+                // Itt állítottam át az általad kért 50%-ra a lefelé tolás mértékét
+                className={`relative w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] transition-all duration-300 translate-y-[50%] ${
+                  gameState.isMyTurn && matchResult === null
                     ? 'cursor-pointer hover:-translate-y-2 md:hover:-translate-y-6 hover:z-50' 
                     : 'cursor-not-allowed opacity-80'
                 }`}

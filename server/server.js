@@ -10,7 +10,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // Élesben érdemes korlátozni a kliens URL-jére
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -30,20 +30,28 @@ io.on('connection', (socket) => {
   console.log('Egy felhasználó csatlakozott:', socket.id);
 
   socket.on('joinQueue', (name) => {
-    if (playerNames.has(name)) {
+    
+    if (playerNames.has(name) && socket.data.username !== name) {
       socket.emit('error', 'Ez a név már foglalt!');
-      socket.disconnect();
-      return;
+      return; 
     }
 
-    playerNames.add(name);
-    socket.data.username = name;
-    queue.push({
-      'name': name,
-      'socketid': socket.id
-    });
+    if (!playerNames.has(name)) {
+      playerNames.add(name);
+      socket.data.username = name;
+    }
 
-    //Creating rooms whenever 2 players are searching
+    const isAlreadyInQueue = queue.some(p => p.socketid === socket.id);
+    if (!isAlreadyInQueue) {
+      queue.push({
+        'name': name,
+        'socketid': socket.id
+      });
+    }
+
+    console.log('Játékos keres:', name);
+    console.log('Jelenlegi várólista:', queue.map(p => p.name));
+
     if (queue.length >= 2) {
       const p1 = queue.shift();
       const p2 = queue.shift();
@@ -60,20 +68,31 @@ io.on('connection', (socket) => {
         socket1.data.roomId = roomId;
         socket2.data.roomId = roomId;
 
-        const newGameRoom = new Room(roomId, p1, p2, io);
+        const newGameRoom = new Room(roomId, p1, p2, io, (finishedRoomId) => {
+          console.log(`Játék véget ért a ${finishedRoomId} szobában, törlés a memóriából.`);
+          delete rooms[finishedRoomId];
+          
+          const clients = io.sockets.adapter.rooms.get(finishedRoomId);
+          if (clients) {
+            for (const clientId of clients) {
+              const clientSocket = io.sockets.sockets.get(clientId);
+              if (clientSocket) {
+                clientSocket.leave(finishedRoomId);
+                clientSocket.data.roomId = null;
+              }
+            }
+          }
+        });
 
         rooms[roomId] = newGameRoom;
+        console.log(`Szoba létrehozva: ${roomId} (${p1.name} vs ${p2.name})`);
 
         newGameRoom.startGame();
       } else {
         if (socket1) queue.unshift(p1);
         if (socket2) queue.unshift(p2);
       }
-
     }
-
-    console.log(queue);
-    console.log('Játékos keres:', name);
   });
 
   socket.on('playerMove', (cardData) => {
@@ -81,6 +100,16 @@ io.on('connection', (socket) => {
 
     if (roomId && rooms[roomId]) {
       rooms[roomId].handleMove(socket.id, cardData);
+    } else {
+      socket.emit('error', 'Nincs aktív játék!');
+    }
+  });
+
+  socket.on('switchTrumpCard', () => {
+    const roomId = socket.data.roomId;
+
+    if (roomId && rooms[roomId]) {
+      rooms[roomId].handleSwitchTrumpCard(socket.id);
     } else {
       socket.emit('error', 'Nincs aktív játék!');
     }
@@ -101,10 +130,8 @@ io.on('connection', (socket) => {
     const roomId = socket.data.roomId;
 
     if (roomId && rooms[roomId]) {
-      console.log(`Játék leáll ${roomId} szobában.`)
-
+      console.log(`Játék leáll ${roomId} szobában (játékos kilépett).`);
       io.to(roomId).emit('playerLeft');
-
       delete rooms[roomId];
     }
 
@@ -113,13 +140,12 @@ io.on('connection', (socket) => {
     if (queueIndex != -1) {
       queue.splice(queueIndex, 1);
       console.log('Játékos eltávolítva a várólistából.');
-      console.log(queue);
+      console.log('Jelenlegi várólista:', queue.map(p => p.name));
     }
 
     if (name) {
       playerNames.delete(name);
-
-      console.log(`Felhasználó kilépett és törölve: ${name}`);
+      console.log(`Felhasználó név felszabadítva: ${name}`);
     } else {
       console.log('Ismeretlen (név nélküli) socket lépett ki.');
     }

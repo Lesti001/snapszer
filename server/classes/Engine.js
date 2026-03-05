@@ -50,6 +50,20 @@ class Engine {
     }
   }
 
+  switchTrumpCard(player) {
+    if (player && this.activePlayer === player) {
+      const cardToSwitchIndex = player.hand.findIndex(item => (item.suit === this.trumpSuit && item.type === 'also'));
+
+      if (cardToSwitchIndex !== -1 && this.trumpCard) {
+        const cardToSwitch = player.removeCard(cardToSwitchIndex);
+        player.hand.push(this.trumpCard);
+        this.trumpCard = cardToSwitch;
+        return { success: true };
+      }
+    }
+
+    return { success: false };
+  }
 
   handleMove(player, card) {
     if (player !== this.activePlayer) {
@@ -71,7 +85,7 @@ class Engine {
         //IF THE PLAYER WINS THE ROUND WITH THE ANNOUNCEMENT
         const winResult = this.checkWinCondition(player, (player === this.player1 ? this.player2 : this.player1));
         if (winResult) {
-          return { success: true };//PLAYER WON
+          return { success: true, isRoundOver: winResult };//PLAYER WON
         }
 
         this.boardCard = announcement.playedCard;
@@ -217,7 +231,6 @@ class Engine {
     this.startRound();
 
     if (winner.gamePoints >= 7) {
-
 
       console.log(`Vége a mecsnek! NYERT: ${winner.name}`);
     }
