@@ -12,13 +12,13 @@ const GamePage = () => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [invalidCard, setInvalidCard] = useState(null);
   const [invalidTrump, setInvalidTrump] = useState(false);
-  const [matchResult, setMatchResult] = useState(null); // Játék vége állapot
+  const [matchResult, setMatchResult] = useState(null);
   
   const attemptedCardRef = useRef(null);
   const errorToastTimeoutRef = useRef(null);
   const invalidCardTimeoutRef = useRef(null);
   const invalidTrumpTimeoutRef = useRef(null);
-  const matchEndTimeoutRef = useRef(null); // Játék vége időzítő
+  const matchEndTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!roomInfo) {
@@ -73,7 +73,7 @@ const GamePage = () => {
     socket.emit('requestGameState');
     socket.on('invalidMove', handleInvalidMove);
     socket.on('invalidSwitch', handleInvalidSwitch);
-    socket.on('matchEnded', handleMatchEnded); // Feliratkozás a meccs végére
+    socket.on('matchEnded', handleMatchEnded);
 
     return () => {
       socket.off('gameStateUpdate', handleGameStateUpdate);
@@ -88,7 +88,6 @@ const GamePage = () => {
   }, [roomInfo, navigate]);
 
   const handleCardClick = (card) => {
-    // Csak akkor léphet, ha nincs vége a játéknak
     if (gameState.isMyTurn && matchResult === null) {
       attemptedCardRef.current = card;
       socket.emit('playerMove', card);
@@ -96,7 +95,6 @@ const GamePage = () => {
   };
 
   const handleTrumpClick = () => {
-    // Csak akkor cserélhet, ha nincs vége a játéknak
     if (gameState.isMyTurn && matchResult === null) {
       socket.emit('switchTrumpCard');
     }
@@ -128,7 +126,6 @@ const GamePage = () => {
         `}
       </style>
 
-      {/* Játék vége képernyő (Overlay) */}
       {matchResult !== null && (
         <div className="absolute inset-0 bg-black/70 backdrop-blur-md z-[200] flex flex-col items-center justify-center">
           <div className={`text-6xl md:text-8xl font-black mb-6 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] ${matchResult ? 'text-green-400' : 'text-red-500'}`}>
@@ -140,7 +137,6 @@ const GamePage = () => {
         </div>
       )}
 
-      {/* Hibaüzenet csak akkor jelenik meg, ha a játék még megy */}
       {errorMessage && matchResult === null && (
         <div className="absolute top-12 left-1/2 -translate-x-1/2 bg-red-600/95 text-white px-6 py-3 rounded-2xl shadow-[0_10px_40px_rgba(220,38,38,0.5)] z-[100] font-bold border-2 border-red-400 flex items-center space-x-3 transition-all duration-300 transform translate-y-0 opacity-100">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -276,7 +272,6 @@ const GamePage = () => {
             return (
               <div
                 key={i}
-                // Itt állítottam át az általad kért 50%-ra a lefelé tolás mértékét
                 className={`relative w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] transition-all duration-300 translate-y-[50%] ${
                   gameState.isMyTurn && matchResult === null
                     ? 'cursor-pointer hover:-translate-y-2 md:hover:-translate-y-6 hover:z-50' 
