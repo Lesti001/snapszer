@@ -134,7 +134,7 @@ const GamePage = () => {
       {matchResult !== null && (
         <div className="absolute inset-0 bg-black/70 backdrop-blur-md z-[200] flex flex-col items-center justify-center">
           <div className={`text-6xl md:text-8xl font-black mb-6 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] ${matchResult ? 'text-green-400' : 'text-red-500'}`}>
-            {matchResult ? 'GYŐZTÉL!' : 'VESZTETTÉL!'}
+            {matchResult ? 'NYERTÉL!' : 'VESZTETTÉL!'}
           </div>
           {matchEndMessage && (
             <p>
