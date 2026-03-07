@@ -24,6 +24,9 @@ class Engine {
     this.player1.resetRoundPoints();
     this.player2.resetRoundPoints();
 
+    this.player1.clearWonCards();
+    this.player2.clearWonCards();
+
     this.deck.generate();
     this.deck.shuffle();
 
@@ -140,6 +143,7 @@ class Engine {
 
     const winningPoints = cards[0].value + cards[1].value;
     player.addRoundPoints(winningPoints);
+    player.addCardsToWonCards(cards);
   }
 
   drawAfterTrick(winner, loser) {
