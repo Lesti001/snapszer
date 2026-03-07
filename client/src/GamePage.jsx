@@ -13,6 +13,7 @@ const GamePage = () => {
   const [invalidCard, setInvalidCard] = useState(null);
   const [invalidTrump, setInvalidTrump] = useState(false);
   const [matchResult, setMatchResult] = useState(null);
+  const [matchEndMessage, setMatchEndMessage] = useState(null);
   
   const attemptedCardRef = useRef(null);
   const errorToastTimeoutRef = useRef(null);
@@ -61,6 +62,10 @@ const GamePage = () => {
 
     const handleMatchEnded = (data) => {
       setMatchResult(data.isWinner);
+
+      if (data.msg) {
+        setMatchEndMessage(data.msg);
+      }
       
       if (matchEndTimeoutRef.current) clearTimeout(matchEndTimeoutRef.current);
       
@@ -103,7 +108,7 @@ const GamePage = () => {
   if (!gameState) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center font-sans">
-        <div className="text-[#D39696] text-2xl font-semibold animate-pulse">Asztal előkészítése...</div>
+        <div className="text-[#D39696] text-2xl font-semibold animate-pulse">Betőltés...</div>
       </div>
     );
   }
@@ -131,6 +136,11 @@ const GamePage = () => {
           <div className={`text-6xl md:text-8xl font-black mb-6 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] ${matchResult ? 'text-green-400' : 'text-red-500'}`}>
             {matchResult ? 'GYŐZTÉL!' : 'VESZTETTÉL!'}
           </div>
+          {matchEndMessage && (
+            <p>
+              <p className="text-white text-2xl mb-6 font-bold">{matchEndMessage}</p>
+            </p>
+          )}
           <p className="text-white/80 text-xl font-semibold tracking-widest animate-pulse">
             Visszatérés a főoldalra...
           </p>

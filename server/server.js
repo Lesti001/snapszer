@@ -30,10 +30,10 @@ io.on('connection', (socket) => {
   console.log('Egy felhasználó csatlakozott:', socket.id);
 
   socket.on('joinQueue', (name) => {
-    
+
     if (playerNames.has(name) && socket.data.username !== name) {
       socket.emit('error', 'Ez a név már foglalt!');
-      return; 
+      return;
     }
 
     if (!playerNames.has(name)) {
@@ -71,7 +71,7 @@ io.on('connection', (socket) => {
         const newGameRoom = new Room(roomId, p1, p2, io, (finishedRoomId) => {
           console.log(`Játék véget ért a ${finishedRoomId} szobában, törlés a memóriából.`);
           delete rooms[finishedRoomId];
-          
+
           const clients = io.sockets.adapter.rooms.get(finishedRoomId);
           if (clients) {
             for (const clientId of clients) {
@@ -130,8 +130,20 @@ io.on('connection', (socket) => {
 
     if (roomId && rooms[roomId]) {
       console.log(`Játék leáll ${roomId} szobában (játékos kilépett).`);
-      io.to(roomId).emit('playerLeft');
+
+      io.to(roomId).emit('matchEnded', { isWinner: true, msg : 'Kilépett az ellenfél!'});
+
       delete rooms[roomId];
+
+      const clients = io.sockets.adapter.rooms.get(roomId);
+      if (clients) {
+        for (const clientId of [...clients]) {
+          const clientSocket = io.sockets.sockets.get(clientId);
+          if (clientSocket) {
+            clientSocket.disconnect(true);
+          }
+        }
+      }
     }
 
     const queueIndex = queue.findIndex(p => p.socketid === socket.id);
