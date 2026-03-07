@@ -77,8 +77,7 @@ io.on('connection', (socket) => {
             for (const clientId of clients) {
               const clientSocket = io.sockets.sockets.get(clientId);
               if (clientSocket) {
-                clientSocket.leave(finishedRoomId);
-                clientSocket.data.roomId = null;
+                clientSocket.disconnect(true);
               }
             }
           }
