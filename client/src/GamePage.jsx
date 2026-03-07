@@ -13,6 +13,7 @@ const GamePage = () => {
   const [invalidCard, setInvalidCard] = useState(null);
   const [invalidTrump, setInvalidTrump] = useState(false);
   const [matchResult, setMatchResult] = useState(null);
+  const [matchEndMessage, setMatchEndMessage] = useState(null);
   
   const attemptedCardRef = useRef(null);
   const errorToastTimeoutRef = useRef(null);
@@ -61,6 +62,10 @@ const GamePage = () => {
 
     const handleMatchEnded = (data) => {
       setMatchResult(data.isWinner);
+
+      if (data.msg) {
+        setMatchEndMessage(data.msg);
+      }
       
       if (matchEndTimeoutRef.current) clearTimeout(matchEndTimeoutRef.current);
       
@@ -103,7 +108,7 @@ const GamePage = () => {
   if (!gameState) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center font-sans">
-        <div className="text-[#D39696] text-2xl font-semibold animate-pulse">Asztal előkészítése...</div>
+        <div className="text-[#D39696] text-2xl font-semibold animate-pulse">Betőltés...</div>
       </div>
     );
   }
@@ -131,6 +136,11 @@ const GamePage = () => {
           <div className={`text-6xl md:text-8xl font-black mb-6 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] ${matchResult ? 'text-green-400' : 'text-red-500'}`}>
             {matchResult ? 'GYŐZTÉL!' : 'VESZTETTÉL!'}
           </div>
+          {matchEndMessage && (
+            <p>
+              <p className="text-white text-2xl mb-6 font-bold">{matchEndMessage}</p>
+            </p>
+          )}
           <p className="text-white/80 text-xl font-semibold tracking-widest animate-pulse">
             Visszatérés a főoldalra...
           </p>
@@ -263,6 +273,45 @@ const GamePage = () => {
           </div>
         )}
       </div>
+
+      {gameState.wonCards && gameState.wonCards.length > 0 && (
+        <div className="absolute bottom-6 right-6 z-40 group flex flex-col items-end">
+          
+          <div className="absolute bottom-full right-0 mb-4 p-4 bg-white/95 backdrop-blur-md border-2 border-[#D39696]/30 rounded-2xl shadow-2xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto origin-bottom-right w-max max-w-[85vw] sm:max-w-[400px] z-50">
+            <h3 className="text-[#D39696] font-bold text-sm uppercase tracking-widest mb-3 border-b-2 border-[#D39696]/20 pb-1">
+              Ütéseid
+            </h3>
+            <div className="flex flex-wrap gap-x-6 gap-y-4 justify-end">
+              {Array.from({ length: Math.floor(gameState.wonCards.length / 2) }).map((_, trickIndex) => {
+                const card1 = gameState.wonCards[trickIndex * 2];
+                const card2 = gameState.wonCards[trickIndex * 2 + 1];
+                return (
+                  <div key={trickIndex} className="relative flex w-16 sm:w-20 hover:scale-110 transition-transform cursor-default">
+                    <img 
+                      src={`/cards/${card1.suit}_${card1.type}.png`} 
+                      className="w-12 sm:w-14 aspect-[130/234] object-cover rounded-lg shadow-md border border-gray-300 z-10 -rotate-3" 
+                      alt="Ütés lap 1" 
+                    />
+                    {card2 && (
+                      <img 
+                        src={`/cards/${card2.suit}_${card2.type}.png`} 
+                        className="absolute left-4 sm:left-6 w-12 sm:w-14 aspect-[130/234] object-cover rounded-lg shadow-xl border border-gray-300 z-20 rotate-6" 
+                        alt="Ütés lap 2" 
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="relative cursor-pointer hover:-translate-y-2 transition-transform duration-300">            
+            <img src="/cards/face_down.jpg" alt="Ütések alja" className="absolute top-1 left-1 w-20 sm:w-24 aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md z-10" />
+            <img src="/cards/face_down.jpg" alt="Ütések közepe" className="absolute top-0.5 left-0.5 w-20 sm:w-24 aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md z-20" />
+            <img src="/cards/face_down.jpg" alt="Ütések teteje" className="relative w-20 sm:w-24 aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-xl z-30" />
+          </div>
+        </div>
+      )}
 
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pb-0 z-30">
         <div className="flex -space-x-8 md:-space-x-12 hover:space-x-1 md:hover:space-x-2 transition-all duration-300 ease-in-out px-4 md:px-10 items-end">

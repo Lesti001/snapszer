@@ -7,6 +7,7 @@ class Player {
     this.roundPoints = 0;
     this.gamePoints = 0;
     this.hand = [];
+    this.wonCards = [];
   }
 
   drawCard(card) {
@@ -25,6 +26,19 @@ class Player {
     this.hand = [];
   }
 
+  clearWonCards() {
+    this.wonCards = [];
+  }
+
+  addCardsToWonCards(cards) {
+    if (!cards[0] || !cards[1]) {
+      throw new Error("No cards to add to wonCards!");
+    } 
+
+    this.wonCards.push(cards[0]);
+    this.wonCards.push(cards[1]);
+  }
+
   removeCard(index) {
     if (index < 0 || index >= this.hand.length) {
       throw new Error("Invalid card index");
@@ -39,7 +53,6 @@ class Player {
     const suits = ["piros", "tok", "zold", "makk"];
 
     for (const suit of suits) {
-      // Megkeressük a párokat
       const king = this.hand.find(c => c.suit === suit && c.type === "kiraly");
       const upper = this.hand.find(c => c.suit === suit && c.type === "felso");
 

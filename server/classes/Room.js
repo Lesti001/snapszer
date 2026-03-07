@@ -112,6 +112,7 @@ class Room {
         myHand: player.hand,
         myPoints: player.roundPoints,
         myGamePoints: player.gamePoints,
+        wonCards: player.wonCards,
 
         enemyName: opponent.name,
         enemyHandCount: opponent.hand.length,
