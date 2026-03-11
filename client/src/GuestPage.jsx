@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { io } from "socket.io-client";
 import socket from './socket';
+
 const cardImageSrc = "/decor-card.jpeg";
 const cardImageSrc2 = "/decor-card2.jpeg";
 
@@ -11,6 +10,8 @@ const GuestPage = () => {
   const [name, setName] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [timer, setTimer] = useState(0);
+  
+  const [nameError, setNameError] = useState(''); 
 
   useEffect(() => {
     let interval = null;
@@ -34,15 +35,13 @@ const GuestPage = () => {
   };
 
   useEffect(() => {
-
     const handleConnect = () => {
       console.log("Létrejött a kapcsolat (ID: ", socket.id + ")");
     };
 
     const handleError = (message) => {
       console.error("Szerver hiba:", message);
-      alert(message);
-
+      setNameError(message);
       setIsSearching(false);
       socket.disconnect();
     }
@@ -53,14 +52,12 @@ const GuestPage = () => {
 
     const handleDisconnect = (reason) => {
       console.log("Kapcsolat megszakadt. Ok:", reason);
-
       if (reason === "io server disconnect") {
         setIsSearching(false);
       }
     };
 
     const handleGameStart = (roomInfo) => {
-      //TODO: add info to Game
       console.log("STARTGAME");
       navigate("/game", {state: roomInfo});
     };
@@ -78,19 +75,19 @@ const GuestPage = () => {
       socket.off('joinedQueue', handleJoined);
       socket.off('disconnect', handleDisconnect);
     };
-  }, [name]);
+  }, [name, navigate]);
 
   const handleGameSearch = () => {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      alert("Adj meg egy nevet!"); //TODO: Ez ne legyen alert
+      setNameError("Kérlek, adj meg egy nevet a játékhoz!"); 
       return;
     }
 
     console.log("Játék keresése vendégként:", name);
-
     setIsSearching(true);
+    setNameError('');
 
     if (!socket.connected) {
       socket.connect();
@@ -126,7 +123,10 @@ const GuestPage = () => {
       </div>
 
       <div className="absolute top-6 right-6 z-10">
-        <button className="bg-[#D39696] hover:bg-[#c58585] text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95">
+        <button 
+          onClick={() => navigate('/login')}
+          className="bg-[#D39696] hover:bg-[#c58585] text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95"
+        >
           Bejelentkezés
         </button>
       </div>
@@ -142,9 +142,19 @@ const GuestPage = () => {
               type="text"
               placeholder="Add meg a neved!"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full p-4 text-center text-xl border-b-2 border-gray-300 focus:border-[#D39696] outline-none transition-all bg-white/40 rounded-t-xl text-gray-800 placeholder-gray-400"
+              onChange={(e) => {
+                setName(e.target.value);
+                setNameError('');
+              }}
+              className={`w-full p-4 text-center text-xl border-b-2 outline-none transition-all bg-white/40 rounded-t-xl text-gray-800 placeholder-gray-400 ${
+                nameError ? 'border-red-500' : 'border-gray-300 focus:border-[#D39696]'
+              }`}
             />
+            {nameError && (
+              <p className="absolute -bottom-6 left-0 w-full text-center text-red-500 font-bold text-sm">
+                {nameError}
+              </p>
+            )}
           </div>
 
           {isSearching ? (
