@@ -5,6 +5,7 @@ const { createServer } = require('node:http');
 const { Server } = require('socket.io');
 const Room = require('./classes/Room');
 require('dotenv').config();
+const db = require('./models');
 
 const app = express();
 const httpServer = createServer(app);
@@ -30,6 +31,10 @@ io.on('connection', (socket) => {
   console.log('Egy felhasználó csatlakozott:', socket.id);
 
   socket.on('joinQueue', (name) => {
+    if (socket.data.roomId) {
+      socket.leave(socket.data.roomId);
+      socket.data.roomId = null;
+    }
 
     if (playerNames.has(name) && socket.data.username !== name) {
       socket.emit('error', 'Ez a név már foglalt!');
@@ -60,7 +65,7 @@ io.on('connection', (socket) => {
       const socket2 = io.sockets.sockets.get(p2.socketid);
 
       if (socket1 && socket2) {
-        const roomId = `room_${p1.socketid}_${p2.socketid}`;
+        const roomId = `room_${Date.now()}_${p1.socketid}_${p2.socketid}`;
 
         socket1.join(roomId);
         socket2.join(roomId);
@@ -74,7 +79,7 @@ io.on('connection', (socket) => {
 
           const clients = io.sockets.adapter.rooms.get(finishedRoomId);
           if (clients) {
-            for (const clientId of clients) {
+            for (const clientId of [...clients]) {
               const clientSocket = io.sockets.sockets.get(clientId);
               if (clientSocket) {
                 clientSocket.disconnect(true);
@@ -131,7 +136,7 @@ io.on('connection', (socket) => {
     if (roomId && rooms[roomId]) {
       console.log(`Játék leáll ${roomId} szobában (játékos kilépett).`);
 
-      io.to(roomId).emit('matchEnded', { isWinner: true, msg : 'Kilépett az ellenfél!'});
+      io.to(roomId).emit('matchEnded', { isWinner: true, msg: 'Kilépett az ellenfél!' });
 
       delete rooms[roomId];
 
@@ -183,6 +188,14 @@ app.use((req, res, next) => {
   }
 });
 
-httpServer.listen(PORT, () => {
-  console.log(`Szerver és Socket.io fut a ${PORT} porton`);
-});
+db.sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('Adatbázis sikeresen szinkronizálva.');
+
+    httpServer.listen(PORT, () => {
+      console.log(`Szerver és Socket.io fut a ${PORT} porton`);
+    });
+  })
+  .catch((err) => {
+    console.error('Hiba az adatbázis szinkronizációja során:', err);
+  });
