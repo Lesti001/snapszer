@@ -87,7 +87,7 @@ io.on('connection', (socket) => {
     if (!playerNames.has(name)) {
       playerNames.add(name);
       socket.data.username = name;
-      
+
       socket.data.isAuthenticated = isAuthenticated;
       socket.data.playerId = playerId;
     }
@@ -102,7 +102,7 @@ io.on('connection', (socket) => {
     }
 
     logMatchSearch(name, true);
-    
+
     console.log('Játékos keres:', name);
     console.log('Jelenlegi várólista:', queue.map(p => p.name));
 
@@ -124,7 +124,7 @@ io.on('connection', (socket) => {
 
         const newGameRoom = new Room(roomId, p1, p2, io, async (finishedRoomId, winner, loser) => {
           console.log(`Játék véget ért a ${finishedRoomId} szobában, törlés a memóriából.`);
-          
+
           if (winner && loser) {
             try {
               if (winner.userId) {
@@ -132,19 +132,53 @@ io.on('connection', (socket) => {
                   player_id: winner.userId,
                   opponent_name: loser.name,
                   match_status: 'WON',
-                  final_score: `${winner.gamePoints} - ${loser.gamePoints}`
+                  final_score: winner.gamePoints !== undefined ? `${winner.gamePoints} - ${loser.gamePoints}` : 'Disconnect'
                 });
+
+                const wPoints = Number(winner.gamePoints) || 0;
+                const winnerStats = await db.Stats.findOne({ where: { player_id: winner.userId } });
+
+                if (winnerStats) {
+                  winnerStats.total_wins += 1;
+                  winnerStats.total_games += 1;
+                  winnerStats.total_points += wPoints;
+                  await winnerStats.save();
+                } else {
+                  await db.Stats.create({
+                    player_id: winner.userId,
+                    total_wins: 1,
+                    total_games: 1,
+                    total_points: wPoints
+                  });
+                }
               }
+
               if (loser.userId) {
                 await db.History.create({
                   player_id: loser.userId,
                   opponent_name: winner.name,
                   match_status: 'LOST',
-                  final_score: `${loser.gamePoints} - ${winner.gamePoints}`
+                  final_score: loser.gamePoints !== undefined ? `${loser.gamePoints} - ${winner.gamePoints}` : 'Disconnect'
                 });
+
+                const lPoints = Number(loser.gamePoints) || 0;
+                const loserStats = await db.Stats.findOne({ where: { player_id: loser.userId } });
+
+                if (loserStats) {
+                  loserStats.total_games += 1;
+                  loserStats.total_points += lPoints;
+                  await loserStats.save();
+                } else {
+                  await db.Stats.create({
+                    player_id: loser.userId,
+                    total_wins: 0,
+                    total_games: 1,
+                    total_points: lPoints
+                  });
+                }
               }
             } catch (err) {
-              console.error("Adatbázis hiba a history mentésekor:", err);
+              console.error(err);
             }
           }
 
@@ -231,7 +265,25 @@ io.on('connection', (socket) => {
             match_status: 'WON',
             final_score: 'Disconnect'
           });
+
+          const wPoints = Number(winner.gamePoints) || 0;
+          const winnerStats = await db.Stats.findOne({ where: { player_id: winner.userId } });
+
+          if (winnerStats) {
+            winnerStats.total_wins += 1;
+            winnerStats.total_games += 1;
+            winnerStats.total_points += wPoints;
+            await winnerStats.save();
+          } else {
+            await db.Stats.create({
+              player_id: winner.userId,
+              total_wins: 1,
+              total_games: 1,
+              total_points: wPoints
+            });
+          }
         }
+
         if (loser && loser.userId) {
           await db.History.create({
             player_id: loser.userId,
@@ -239,9 +291,25 @@ io.on('connection', (socket) => {
             match_status: 'LOST',
             final_score: 'Disconnect'
           });
+
+          const lPoints = Number(loser.gamePoints) || 0;
+          const loserStats = await db.Stats.findOne({ where: { player_id: loser.userId } });
+
+          if (loserStats) {
+            loserStats.total_games += 1;
+            loserStats.total_points += lPoints;
+            await loserStats.save();
+          } else {
+            await db.Stats.create({
+              player_id: loser.userId,
+              total_wins: 0,
+              total_games: 1,
+              total_points: lPoints
+            });
+          }
         }
       } catch (err) {
-        console.error("Adatbázis hiba a kilépés utáni history mentéskor:", err);
+        console.error(err);
       }
 
       delete rooms[roomId];
@@ -303,5 +371,5 @@ db.sequelize.sync({ alter: true })
     });
   })
   .catch((err) => {
-    console.error('Hiba az adatbázis szinkronizációja során:', err);
+    console.error(err);
   });
