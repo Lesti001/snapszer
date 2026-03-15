@@ -4,15 +4,36 @@ import { Link, useNavigate } from 'react-router-dom';
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: Itt fogod meghívni a backend bejelentkezési végpontját
-    console.log('Bejelentkezés:', { username, password });
-    
-    // Sikeres bejelentkezés után visszairányítás a főoldalra:
-    // navigate('/');
+    setError('');
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Hiba történt a bejelentkezés során');
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      navigate('/');
+
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -33,6 +54,13 @@ const LoginPage = () => {
       <div className="bg-white/80 backdrop-blur-md border border-[#D39696]/20 rounded-3xl shadow-2xl w-full max-w-md p-8 z-10">
         <h1 className="text-3xl font-black text-gray-800 mb-2 text-center">Bejelentkezés!</h1>
         <p className="text-gray-500 text-center mb-8">Add meg a neved és a jelszavad a folytatáshoz!</p>
+
+        {/* Hibaüzenet megjelenítése, ha van */}
+        {error && (
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-5 rounded-r-lg text-sm font-medium">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>

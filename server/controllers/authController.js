@@ -1,7 +1,8 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { Auth, Player, sequelize } = require('../models');
 
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
@@ -37,7 +38,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   const {username, password} = req.body;
 
   if (!username || !password) {
@@ -77,4 +78,9 @@ exports.login = async (req, res) => {
     console.error('Error while login:', error);
     res.status(500).json({ message: 'Server issue.' });
   }
+};
+
+module.exports = {
+  register,
+  login
 };

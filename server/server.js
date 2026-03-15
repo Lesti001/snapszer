@@ -3,10 +3,12 @@ const cors = require('cors');
 const path = require('node:path');
 const { createServer } = require('node:http');
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
 const Room = require('./classes/Room');
 require('dotenv').config();
 const db = require('./models');
-const authRoutes = require('./routes/authRoutes');
+const authController = require('./controllers/authController');
+const { logMatchSearch } = require('./utils/logger');
 
 const app = express();
 const httpServer = createServer(app);
@@ -21,8 +23,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const authRoutes = require('./routes/authRoutes');
-app.use('/api/auth', authRoutes);
+app.post('/api/auth/register', authController.register);
+app.post('/api/auth/login', authController.login);
 
 const PORT = process.env.PORT || 3000;
 const distPath = path.join(__dirname, '..', 'client', 'dist');
@@ -34,30 +36,73 @@ const playerNames = new Set();
 io.on('connection', (socket) => {
   console.log('Egy felhasználó csatlakozott:', socket.id);
 
-  socket.on('joinQueue', (name) => {
+  socket.on('joinQueue', async (payload) => {
+    const name = typeof payload === 'string' ? payload : payload.name;
+    const token = typeof payload === 'string' ? null : payload.token;
+
     if (socket.data.roomId) {
       socket.leave(socket.data.roomId);
       socket.data.roomId = null;
     }
 
+    let isAuthenticated = false;
+    let playerId = null;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.username === name) {
+          isAuthenticated = true;
+          playerId = decoded.playerId;
+        } else {
+          logMatchSearch(name, false, 'Hibás token és név párosítás');
+          return socket.emit('error', 'Érvénytelen munkamenet!');
+        }
+      } catch (err) {
+        logMatchSearch(name, false, 'Lejárt vagy érvénytelen JWT token');
+        return socket.emit('error', 'Érvénytelen vagy lejárt munkamenet! Jelentkezz be újra.');
+      }
+    }
+
+    if (!isAuthenticated) {
+      try {
+        const existingPlayer = await db.Player.findOne({ where: { username: name } });
+        if (existingPlayer) {
+          logMatchSearch(name, false, 'Regisztrált nevet próbált használni vendégként');
+          return socket.emit('error', 'Ez a név foglalt!');
+        }
+      } catch (error) {
+        console.error("Adatbázis hiba:", error);
+        logMatchSearch(name, false, 'Adatbázis hiba a név ellenőrzésekor');
+        return socket.emit('error', 'Szerverhiba történt a név ellenőrzésekor.');
+      }
+    }
+
     if (playerNames.has(name) && socket.data.username !== name) {
-      socket.emit('error', 'Ez a név már foglalt!');
+      socket.emit('error', 'Ez a név jelenleg már játszik a szerveren!');
+      logMatchSearch(name, false, 'A név már aktív a szerveren');
       return;
     }
 
     if (!playerNames.has(name)) {
       playerNames.add(name);
       socket.data.username = name;
+      
+      socket.data.isAuthenticated = isAuthenticated;
+      socket.data.playerId = playerId;
     }
 
     const isAlreadyInQueue = queue.some(p => p.socketid === socket.id);
     if (!isAlreadyInQueue) {
       queue.push({
         'name': name,
-        'socketid': socket.id
+        'socketid': socket.id,
+        'playerId': playerId
       });
     }
 
+    logMatchSearch(name, true);
+    
     console.log('Játékos keres:', name);
     console.log('Jelenlegi várólista:', queue.map(p => p.name));
 
@@ -77,8 +122,32 @@ io.on('connection', (socket) => {
         socket1.data.roomId = roomId;
         socket2.data.roomId = roomId;
 
-        const newGameRoom = new Room(roomId, p1, p2, io, (finishedRoomId) => {
+        const newGameRoom = new Room(roomId, p1, p2, io, async (finishedRoomId, winner, loser) => {
           console.log(`Játék véget ért a ${finishedRoomId} szobában, törlés a memóriából.`);
+          
+          if (winner && loser) {
+            try {
+              if (winner.userId) {
+                await db.History.create({
+                  player_id: winner.userId,
+                  opponent_name: loser.name,
+                  match_status: 'WON',
+                  final_score: `${winner.gamePoints} - ${loser.gamePoints}`
+                });
+              }
+              if (loser.userId) {
+                await db.History.create({
+                  player_id: loser.userId,
+                  opponent_name: winner.name,
+                  match_status: 'LOST',
+                  final_score: `${loser.gamePoints} - ${winner.gamePoints}`
+                });
+              }
+            } catch (err) {
+              console.error("Adatbázis hiba a history mentésekor:", err);
+            }
+          }
+
           delete rooms[finishedRoomId];
 
           const clients = io.sockets.adapter.rooms.get(finishedRoomId);
@@ -131,7 +200,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log('Felhasználó kilépett', socket.id);
 
     const name = socket.data.username;
@@ -141,6 +210,39 @@ io.on('connection', (socket) => {
       console.log(`Játék leáll ${roomId} szobában (játékos kilépett).`);
 
       io.to(roomId).emit('matchEnded', { isWinner: true, msg: 'Kilépett az ellenfél!' });
+
+      const roomObj = rooms[roomId];
+      let winner = null;
+      let loser = null;
+
+      if (roomObj.engine.player1.socketId === socket.id) {
+        loser = roomObj.engine.player1;
+        winner = roomObj.engine.player2;
+      } else {
+        loser = roomObj.engine.player2;
+        winner = roomObj.engine.player1;
+      }
+
+      try {
+        if (winner && winner.userId) {
+          await db.History.create({
+            player_id: winner.userId,
+            opponent_name: loser.name,
+            match_status: 'WON',
+            final_score: 'Disconnect'
+          });
+        }
+        if (loser && loser.userId) {
+          await db.History.create({
+            player_id: loser.userId,
+            opponent_name: winner.name,
+            match_status: 'LOST',
+            final_score: 'Disconnect'
+          });
+        }
+      } catch (err) {
+        console.error("Adatbázis hiba a kilépés utáni history mentéskor:", err);
+      }
 
       delete rooms[roomId];
 

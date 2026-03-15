@@ -8,8 +8,9 @@ class Room {
     this.onGameEnd = onGameEnd;
 
     const p1 = new Player(player1Data.name, player1Data.socketid);
+    p1.userId = player1Data.playerId || null;
     const p2 = new Player(player2Data.name, player2Data.socketid);
-
+    p2.userId = player2Data.playerId || null;
     this.engine = new Engine(p1, p2);
   }
 
@@ -95,7 +96,9 @@ class Room {
             const matchLoser = isRoundOver.winner === this.engine.player1 ? this.engine.player2 : this.engine.player1;
             this.io.to(isRoundOver.winner.socketId).emit('matchEnded', { isWinner: true });
             this.io.to(matchLoser.socketId).emit('matchEnded', { isWinner: false });
-            if (this.onGameEnd) this.onGameEnd(this.roomId);
+            if (this.onGameEnd) {
+              this.onGameEnd(this.roomId, isRoundOver.winner, matchLoser);
+            }
           }
         }
       }, 2000);

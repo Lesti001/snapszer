@@ -8,7 +8,7 @@ const RegisterPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -17,11 +17,29 @@ const RegisterPage = () => {
       return;
     }
 
-    // TODO: Itt fogod meghívni a backend regisztrációs végpontját
     console.log('Regisztráció:', { username, password });
-    
-    // Sikeres regisztráció után átirányítás a loginra:
-    // navigate('/login');
+
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Hiba történt a regisztráció során');
+      }
+
+      alert('Sikeres regisztráció! Most már bejelentkezhetsz.');
+      navigate('/login');
+
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
