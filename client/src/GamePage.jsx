@@ -137,9 +137,9 @@ const GamePage = () => {
             {matchResult ? 'NYERTÉL!' : 'VESZTETTÉL!'}
           </div>
           {matchEndMessage && (
-            <p>
-              <p className="text-white text-2xl mb-6 font-bold">{matchEndMessage}</p>
-            </p>
+            <div className="mb-6">
+              <p className="text-white text-2xl font-bold">{matchEndMessage}</p>
+            </div>
           )}
           <p className="text-white/80 text-xl font-semibold tracking-widest animate-pulse">
             Visszatérés a főoldalra...

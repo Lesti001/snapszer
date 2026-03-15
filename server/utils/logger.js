@@ -1,0 +1,18 @@
+const fs = require('fs');
+const path = require('path');
+
+const logFilePath = path.join(__dirname, '..', 'logs', 'searches.log');
+
+exports.logMatchSearch = (name, isSuccess, errorMessage = '') => {
+  const timestamp = new Date().toLocaleString('hu-HU', { timeZone: 'Europe/Budapest' });
+  
+  const status = isSuccess ? 'SIKERES' : `SIKERTELEN - ${errorMessage}`;
+  
+  const logLine = `[${timestamp}] Név: ${name} | ${status}\n`;
+
+  fs.appendFile(logFilePath, logLine, 'utf8', (err) => {
+    if (err) {
+      console.error('Hiba a logfájl írásakor:', err);
+    }
+  });
+};
