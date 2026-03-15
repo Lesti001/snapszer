@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  const successMessage = location.state?.successMessage;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -55,10 +59,9 @@ const LoginPage = () => {
         <h1 className="text-3xl font-black text-gray-800 mb-2 text-center">Bejelentkezés!</h1>
         <p className="text-gray-500 text-center mb-8">Add meg a neved és a jelszavad a folytatáshoz!</p>
 
-        {/* Hibaüzenet megjelenítése, ha van */}
-        {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-5 rounded-r-lg text-sm font-medium">
-            {error}
+        {successMessage && (
+          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-3 mb-5 rounded-r-lg text-sm font-medium">
+            {successMessage}
           </div>
         )}
 

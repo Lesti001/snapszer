@@ -10,8 +10,8 @@ const GuestPage = () => {
   const [name, setName] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [timer, setTimer] = useState(0);
-  const [nameError, setNameError] = useState(''); 
-  
+  const [nameError, setNameError] = useState('');
+
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
@@ -76,7 +76,7 @@ const GuestPage = () => {
 
     const handleGameStart = (roomInfo) => {
       console.log("STARTGAME");
-      navigate("/game", {state: roomInfo});
+      navigate("/game", { state: roomInfo });
     };
 
     socket.once('gameStart', handleGameStart);
@@ -98,7 +98,7 @@ const GuestPage = () => {
     const trimmedName = name.trim();
 
     if (!trimmedName) {
-      setNameError("Kérlek, adj meg egy nevet a játékhoz!"); 
+      setNameError("Kérlek, adj meg egy nevet a játékhoz!");
       return;
     }
 
@@ -141,16 +141,24 @@ const GuestPage = () => {
         </button>
       </div>
 
-      <div className="absolute top-6 right-6 z-10">
+      <div className="absolute top-6 right-6 z-10 flex flex-col items-end gap-3">
         {currentUser ? (
-          <button 
-            onClick={handleLogout}
-            className="bg-gray-500 hover:bg-gray-600 text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95"
-          >
-            Kijelentkezés
-          </button>
+          <>
+            <button
+              onClick={handleLogout}
+              className="w-full bg-gray-500 hover:bg-gray-600 text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95"
+            >
+              Kijelentkezés
+            </button>
+            <button
+              onClick={() => navigate('/stats')}
+              className="w-full bg-[#D39696] hover:bg-[#c58585] text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95"
+            >
+              Statisztika
+            </button>
+          </>
         ) : (
-          <button 
+          <button
             onClick={() => navigate('/login')}
             className="bg-[#D39696] hover:bg-[#c58585] text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95"
           >
@@ -165,7 +173,7 @@ const GuestPage = () => {
         </h1>
 
         <div className="w-full p-10 bg-[#D39696]/10 backdrop-blur-sm border border-[#D39696]/20 rounded-[2.5rem] shadow-xl space-y-8">
-          
+
           {currentUser ? (
             <div className="w-full p-4 text-center text-2xl font-bold text-[#D39696] bg-white/60 border-b-2 border-[#D39696] rounded-t-xl shadow-sm">
               {currentUser.username}
@@ -180,9 +188,8 @@ const GuestPage = () => {
                   setName(e.target.value);
                   setNameError('');
                 }}
-                className={`w-full p-4 text-center text-xl border-b-2 outline-none transition-all bg-white/40 rounded-t-xl text-gray-800 placeholder-gray-400 ${
-                  nameError ? 'border-red-500' : 'border-gray-300 focus:border-[#D39696]'
-                }`}
+                className={`w-full p-4 text-center text-xl border-b-2 outline-none transition-all bg-white/40 rounded-t-xl text-gray-800 placeholder-gray-400 ${nameError ? 'border-red-500' : 'border-gray-300 focus:border-[#D39696]'
+                  }`}
               />
               {nameError && (
                 <p className="absolute -bottom-6 left-0 w-full text-center text-red-500 font-bold text-sm">

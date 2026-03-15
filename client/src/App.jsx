@@ -5,6 +5,7 @@ import RulesPage from './RulesPage';
 import GamePage from './GamePage';
 import LoginPage from './LoginPage';
 import RegisterPage from './RegisterPage';
+import StatsPage from './StatsPage';
 import socket from './socket';
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
         <Route path="/game" element={<GamePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/stats" element={<StatsPage />}/>
       </Routes>
     </Router>
   );

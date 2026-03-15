@@ -8,6 +8,7 @@ const Room = require('./classes/Room');
 require('dotenv').config();
 const db = require('./models');
 const authController = require('./controllers/authController');
+const statsController = require('./controllers/statsController');
 const { logMatchSearch } = require('./utils/logger');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.post('/api/auth/register', authController.register);
 app.post('/api/auth/login', authController.login);
+app.get('/api/stats', statsController.getStats);
 
 const PORT = process.env.PORT || 3000;
 const distPath = path.join(__dirname, '..', 'client', 'dist');

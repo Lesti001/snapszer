@@ -34,8 +34,7 @@ const RegisterPage = () => {
         throw new Error(data.message || 'Hiba történt a regisztráció során');
       }
 
-      alert('Sikeres regisztráció! Most már bejelentkezhetsz.');
-      navigate('/login');
+      navigate('/login', { state: { successMessage: 'Sikeres regisztráció!' } });
 
     } catch (err) {
       setError(err.message);
