@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import socket from './socket';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const cardImageSrc = "/decor-card.jpeg";
 const cardImageSrc2 = "/decor-card2.jpeg";
@@ -28,6 +29,13 @@ const GuestPage = () => {
     localStorage.removeItem('user');
     setCurrentUser(null);
     setName('');
+    setIsSearching(false);
+    socket.disconnect();
+  };
+
+  const handleSearchCancel = () => {
+    setIsSearching(false);
+    socket.disconnect();
   };
 
   useEffect(() => {
@@ -135,7 +143,10 @@ const GuestPage = () => {
 
       <div className="absolute top-6 left-6 z-10">
         <button
-          onClick={() => navigate("/rules")}
+          onClick={() => {
+            handleSearchCancel();
+            navigate("/rules")
+          }}
           className="bg-[#D39696] hover:bg-[#c58585] text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95">
           Szabályok
         </button>
@@ -151,7 +162,10 @@ const GuestPage = () => {
               Kijelentkezés
             </button>
             <button
-              onClick={() => navigate('/stats')}
+              onClick={() => {
+                handleSearchCancel();
+                navigate('/stats');
+              }}
               className="w-full bg-[#D39696] hover:bg-[#c58585] text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95"
             >
               Statisztika
@@ -159,7 +173,10 @@ const GuestPage = () => {
           </>
         ) : (
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => {
+              handleSearchCancel();
+              navigate('/login');
+            }}
             className="bg-[#D39696] hover:bg-[#c58585] text-white font-medium px-6 py-2 rounded shadow-sm transition-all duration-200 active:scale-95"
           >
             Bejelentkezés
@@ -200,9 +217,16 @@ const GuestPage = () => {
           )}
 
           {isSearching ? (
-            <div className="w-full text-xl font-semibold py-4 rounded-2xl shadow-lg bg-white border-7 border-[#D39696] text-[#D39696] flex items-center justify-center gap-3">
+            <div className="w-full text-xl font-semibold py-4 px-6 rounded-2xl shadow-lg bg-white border-7 border-[#D39696] text-[#D39696] flex items-center justify-center gap-3 relative">
               <span>Keresés...</span>
               <span className="font-mono text-2xl">{formatTime(timer)}</span>
+
+              <button
+                onClick={handleSearchCancel}
+                className="absolute right-4 w-9 h-9 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-all duration-200 active:scale-90"
+                title="Keresés megszakítása">              
+                <XMarkIcon className="w-6 h-6 stroke-2" />
+              </button>
             </div>
           ) : (
             <button
