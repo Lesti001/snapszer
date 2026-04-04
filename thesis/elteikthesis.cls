@@ -121,6 +121,7 @@
 		\newcommand{\lstnomencl}{Jelölésjegyzék}
 		\newcommand{\todolabel}{Teendők listája}
 		\newcommand{\acklabel}{Köszönetnyilvánítás}
+		\newcommand{\listlinks}{Hivatkozások}
 	}
 	{ % English
 		\newcommand{\authorlabel}{Author}
