@@ -61,6 +61,8 @@ io.on('connection', (socket) => {
           return socket.emit('error', 'Érvénytelen munkamenet!');
         }
       } catch (err) {
+        console.error("JWT error:", err)
+
         logMatchSearch(name, false, 'Lejárt vagy érvénytelen JWT token');
         return socket.emit('error', 'Érvénytelen vagy lejárt munkamenet! Jelentkezz be újra.');
       }
@@ -124,7 +126,7 @@ io.on('connection', (socket) => {
         socket1.data.roomId = roomId;
         socket2.data.roomId = roomId;
 
-        const newGameRoom = new Room(roomId, p1, p2, io, async (finishedRoomId, winner, loser) => {
+        const newGameRoom = new Room(roomId, p1, p2, io , async (finishedRoomId, winner, loser) => {
           console.log(`Játék véget ért a ${finishedRoomId} szobában, törlés a memóriából.`);
 
           if (winner && loser) {
@@ -134,7 +136,7 @@ io.on('connection', (socket) => {
                   player_id: winner.userId,
                   opponent_name: loser.name,
                   match_status: 'WON',
-                  final_score: winner.gamePoints !== undefined ? `${winner.gamePoints} - ${loser.gamePoints}` : 'Disconnect'
+                  final_score: winner.gamePoints === undefined ? 'Disconnect' : `${winner.gamePoints} - ${loser.gamePoints}`
                 });
 
                 const wPoints = Number(winner.gamePoints) || 0;
@@ -160,7 +162,7 @@ io.on('connection', (socket) => {
                   player_id: loser.userId,
                   opponent_name: winner.name,
                   match_status: 'LOST',
-                  final_score: loser.gamePoints !== undefined ? `${loser.gamePoints} - ${winner.gamePoints}` : 'Disconnect'
+                  final_score: loser.gamePoints === undefined ? 'Disconnect' : `${loser.gamePoints} - ${winner.gamePoints}`
                 });
 
                 const lPoints = Number(loser.gamePoints) || 0;
@@ -188,7 +190,7 @@ io.on('connection', (socket) => {
 
           const clients = io.sockets.adapter.rooms.get(finishedRoomId);
           if (clients) {
-            for (const clientId of [...clients]) {
+            for (const clientId of clients) {
               const clientSocket = io.sockets.sockets.get(clientId);
               if (clientSocket) {
                 clientSocket.disconnect(true);
@@ -228,6 +230,24 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('close', () => {
+    const roomId = socket.data.roomId;
+
+    if (roomId && rooms[roomId]) {
+      const room = rooms[roomId];
+
+     if (room.engine.player1.socketId === socket.id) {
+        room.engine.close(room.engine.player1);
+      } else if (room.engine.player2.socketId === socket.id) {
+        room.engine.close(room.engine.player2);
+      }
+
+      room.broadcastState();
+    }
+
+
+  });
+
   socket.on('requestGameState', () => {
     const roomId = socket.data.roomId;
 
@@ -260,7 +280,7 @@ io.on('connection', (socket) => {
       }
 
       try {
-        if (winner && winner.userId) {
+        if (winner?.userId) {
           await db.History.create({
             player_id: winner.userId,
             opponent_name: loser.name,
@@ -286,7 +306,7 @@ io.on('connection', (socket) => {
           }
         }
 
-        if (loser && loser.userId) {
+        if (loser?.userId) {
           await db.History.create({
             player_id: loser.userId,
             opponent_name: winner.name,
@@ -318,7 +338,7 @@ io.on('connection', (socket) => {
 
       const clients = io.sockets.adapter.rooms.get(roomId);
       if (clients) {
-        for (const clientId of [...clients]) {
+        for (const clientId of clients) {
           const clientSocket = io.sockets.sockets.get(clientId);
           if (clientSocket) {
             clientSocket.disconnect(true);
