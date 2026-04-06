@@ -116,8 +116,8 @@ const RulesPage = () => {
             A Játék Vége
           </h2>
           <div className="border-l-8 border-black pl-8 space-y-4">
-            <p className="text-2xl font-black">Aki eléri a 66 pontot, azonnal bemondja: <span className="text-[#D39696]">"ELÉG!"</span></p>
-            <p className="text-lg font-medium">Ha senki nem mondja be, az utolsó ütés vivője nyeri a partit.</p>
+            <p className="text-2xl font-black">Aki eléri a 66 pontot az nyeri a kört</p>
+            <p className="text-lg font-medium">Ha senki nem éri el, akkor az utolsó ütés vivője nyeri a partit.</p>
           </div>
 
           <div className="mt-10 overflow-hidden border-4 border-gray-900 rounded-2xl">
