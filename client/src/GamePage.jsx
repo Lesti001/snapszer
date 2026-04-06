@@ -8,18 +8,20 @@ const GamePage = () => {
   const roomInfo = location.state;
 
   const [gameState, setGameState] = useState(null);
-  
+
   const [errorMessage, setErrorMessage] = useState(null);
   const [invalidCard, setInvalidCard] = useState(null);
   const [invalidTrump, setInvalidTrump] = useState(false);
   const [matchResult, setMatchResult] = useState(null);
   const [matchEndMessage, setMatchEndMessage] = useState(null);
-  
+  const [announcement, setAnnouncement] = useState(null);
+
   const attemptedCardRef = useRef(null);
   const errorToastTimeoutRef = useRef(null);
   const invalidCardTimeoutRef = useRef(null);
   const invalidTrumpTimeoutRef = useRef(null);
   const matchEndTimeoutRef = useRef(null);
+  const announcementTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!roomInfo) {
@@ -52,9 +54,9 @@ const GamePage = () => {
 
     const handleInvalidSwitch = () => {
       setInvalidTrump(true);
-      
+
       if (invalidTrumpTimeoutRef.current) clearTimeout(invalidTrumpTimeoutRef.current);
-      
+
       invalidTrumpTimeoutRef.current = setTimeout(() => {
         setInvalidTrump(false);
       }, 500);
@@ -66,9 +68,9 @@ const GamePage = () => {
       if (data.msg) {
         setMatchEndMessage(data.msg);
       }
-      
+
       if (matchEndTimeoutRef.current) clearTimeout(matchEndTimeoutRef.current);
-      
+
       matchEndTimeoutRef.current = setTimeout(() => {
         navigate('/');
       }, 4000);
@@ -78,6 +80,7 @@ const GamePage = () => {
     socket.emit('requestGameState');
     socket.on('invalidMove', handleInvalidMove);
     socket.on('invalidSwitch', handleInvalidSwitch);
+    socket.on('announceMentMessage', handleAnnounceMentMessage);
     socket.on('matchEnded', handleMatchEnded);
 
     return () => {
@@ -85,6 +88,7 @@ const GamePage = () => {
       socket.off('invalidMove', handleInvalidMove);
       socket.off('invalidSwitch', handleInvalidSwitch);
       socket.off('matchEnded', handleMatchEnded);
+      socket.off('announceMentMessage', handleAnnounceMentMessage);
       if (errorToastTimeoutRef.current) clearTimeout(errorToastTimeoutRef.current);
       if (invalidCardTimeoutRef.current) clearTimeout(invalidCardTimeoutRef.current);
       if (invalidTrumpTimeoutRef.current) clearTimeout(invalidTrumpTimeoutRef.current);
@@ -105,6 +109,16 @@ const GamePage = () => {
     }
   };
 
+  const handleAnnounceMentMessage = (data) => {
+    setAnnouncement(data);
+
+    if (announcementTimeoutRef.current) clearTimeout(announcementTimeoutRef.current);
+
+    announcementTimeoutRef.current = setTimeout(() => {
+      setAnnouncement(null);
+    }, 3500);
+  };
+
   if (!gameState) {
     return (
       <div className="min-h-screen bg-gray-50 flex justify-center items-center font-sans">
@@ -115,7 +129,7 @@ const GamePage = () => {
 
   return (
     <div className="relative w-full h-screen bg-gray-50 overflow-hidden font-sans">
-      
+
       <style>
         {`
           @keyframes shake {
@@ -153,6 +167,18 @@ const GamePage = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span className="text-lg">{errorMessage}</span>
+        </div>
+      )}
+
+      {announcement && matchResult === null && (
+        <div className={`absolute top-12 left-1/2 -translate-x-1/2 text-white px-6 py-3 rounded-2xl z-[100] font-bold border-2 flex items-center space-x-3 transition-all duration-300 transform translate-y-0 opacity-100 ${announcement.color === 'blue'
+            ? 'bg-blue-600/95 shadow-[0_10px_40px_rgba(37,99,235,0.5)] border-blue-400'
+            : 'bg-orange-500/95 shadow-[0_10px_40px_rgba(249,115,22,0.5)] border-orange-400'
+          }`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 animate-pulse" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+          <span className="text-lg">{announcement.msg}</span>
         </div>
       )}
 
@@ -203,14 +229,13 @@ const GamePage = () => {
 
       {(gameState.boardCard || gameState.secondBoardCard) && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex items-center justify-center">
-          
+
           {gameState.boardCard && (
             <img
               src={`/cards/${gameState.boardCard.suit}_${gameState.boardCard.type}.png`}
               alt="Első kártya"
-              className={`w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md transition-all duration-300 transform ${
-                gameState.secondBoardCard ? '-rotate-6 -translate-x-6' : 'rotate-3'
-              }`}
+              className={`w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md transition-all duration-300 transform ${gameState.secondBoardCard ? '-rotate-6 -translate-x-6' : 'rotate-3'
+                }`}
               style={{ zIndex: 11 }}
             />
           )}
@@ -239,13 +264,11 @@ const GamePage = () => {
                   src={`/cards/${gameState.trumpCard.suit}_${gameState.trumpCard.type}.png`}
                   alt="Adu lap"
                   onClick={handleTrumpClick}
-                  className={`w-full h-full object-cover rounded-xl transition-all duration-300 ${
-                    invalidTrump
-                      ? 'border-4 border-red-600 animate-shake shadow-[0_0_30px_rgba(220,38,38,1)]'
-                      : 'border-2 border-gray-300 shadow-sm'
-                  } ${
-                    gameState.isMyTurn && matchResult === null ? 'cursor-pointer hover:shadow-xl hover:border-[#D39696]' : ''
-                  }`}
+                  className={`w-full h-full object-cover rounded-xl transition-all duration-300 ${invalidTrump
+                    ? 'border-4 border-red-600 animate-shake shadow-[0_0_30px_rgba(220,38,38,1)]'
+                    : 'border-2 border-gray-300 shadow-sm'
+                    } ${gameState.isMyTurn && matchResult === null ? 'cursor-pointer hover:shadow-xl hover:border-[#D39696]' : ''
+                    }`}
                 />
               </div>
             )}
@@ -276,7 +299,7 @@ const GamePage = () => {
 
       {gameState.wonCards && gameState.wonCards.length > 0 && (
         <div className="absolute bottom-6 right-6 z-40 group flex flex-col items-end">
-          
+
           <div className="absolute bottom-full right-0 mb-4 p-4 bg-white/95 backdrop-blur-md border-2 border-[#D39696]/30 rounded-2xl shadow-2xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 pointer-events-none group-hover:pointer-events-auto origin-bottom-right w-max max-w-[85vw] sm:max-w-[400px] z-50">
             <h3 className="text-[#D39696] font-bold text-sm uppercase tracking-widest mb-3 border-b-2 border-[#D39696]/20 pb-1">
               Ütéseid
@@ -287,16 +310,16 @@ const GamePage = () => {
                 const card2 = gameState.wonCards[trickIndex * 2 + 1];
                 return (
                   <div key={trickIndex} className="relative flex w-16 sm:w-20 hover:scale-110 transition-transform cursor-default">
-                    <img 
-                      src={`/cards/${card1.suit}_${card1.type}.png`} 
-                      className="w-12 sm:w-14 aspect-[130/234] object-cover rounded-lg shadow-md border border-gray-300 z-10 -rotate-3" 
-                      alt="Ütés lap 1" 
+                    <img
+                      src={`/cards/${card1.suit}_${card1.type}.png`}
+                      className="w-12 sm:w-14 aspect-[130/234] object-cover rounded-lg shadow-md border border-gray-300 z-10 -rotate-3"
+                      alt="Ütés lap 1"
                     />
                     {card2 && (
-                      <img 
-                        src={`/cards/${card2.suit}_${card2.type}.png`} 
-                        className="absolute left-4 sm:left-6 w-12 sm:w-14 aspect-[130/234] object-cover rounded-lg shadow-xl border border-gray-300 z-20 rotate-6" 
-                        alt="Ütés lap 2" 
+                      <img
+                        src={`/cards/${card2.suit}_${card2.type}.png`}
+                        className="absolute left-4 sm:left-6 w-12 sm:w-14 aspect-[130/234] object-cover rounded-lg shadow-xl border border-gray-300 z-20 rotate-6"
+                        alt="Ütés lap 2"
                       />
                     )}
                   </div>
@@ -305,7 +328,7 @@ const GamePage = () => {
             </div>
           </div>
 
-          <div className="relative cursor-pointer hover:-translate-y-2 transition-transform duration-300">            
+          <div className="relative cursor-pointer hover:-translate-y-2 transition-transform duration-300">
             <img src="/cards/face_down.jpg" alt="Ütések alja" className="absolute top-1 left-1 w-20 sm:w-24 aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md z-10" />
             <img src="/cards/face_down.jpg" alt="Ütések közepe" className="absolute top-0.5 left-0.5 w-20 sm:w-24 aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-md z-20" />
             <img src="/cards/face_down.jpg" alt="Ütések teteje" className="relative w-20 sm:w-24 aspect-[130/234] object-cover border-2 border-gray-300 rounded-xl shadow-xl z-30" />
@@ -321,22 +344,20 @@ const GamePage = () => {
             return (
               <div
                 key={i}
-                className={`relative w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] transition-all duration-300 translate-y-[50%] ${
-                  gameState.isMyTurn && matchResult === null
-                    ? 'cursor-pointer hover:-translate-y-2 md:hover:-translate-y-6 hover:z-50' 
-                    : 'cursor-not-allowed opacity-80'
-                }`}
+                className={`relative w-28 sm:w-32 md:w-36 lg:w-[160px] aspect-[130/234] transition-all duration-300 translate-y-[50%] ${gameState.isMyTurn && matchResult === null
+                  ? 'cursor-pointer hover:-translate-y-2 md:hover:-translate-y-6 hover:z-50'
+                  : 'cursor-not-allowed opacity-80'
+                  }`}
                 style={{ zIndex: isThisCardInvalid ? 100 : i }}
                 onClick={() => handleCardClick(card)}
               >
                 <img
                   src={`/cards/${card.suit}_${card.type}.png`}
                   alt={`${card.suit} ${card.type}`}
-                  className={`w-full h-full object-cover rounded-xl transition-all duration-300 ${
-                    isThisCardInvalid 
-                      ? 'border-4 border-red-600 animate-shake shadow-[0_0_30px_rgba(220,38,38,1)]' 
-                      : 'border-2 border-gray-300 shadow-lg hover:shadow-2xl hover:border-[#D39696]'
-                  }`}
+                  className={`w-full h-full object-cover rounded-xl transition-all duration-300 ${isThisCardInvalid
+                    ? 'border-4 border-red-600 animate-shake shadow-[0_0_30px_rgba(220,38,38,1)]'
+                    : 'border-2 border-gray-300 shadow-lg hover:shadow-2xl hover:border-[#D39696]'
+                    }`}
                 />
               </div>
             );

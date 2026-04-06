@@ -11,7 +11,7 @@ class Room {
     p1.userId = player1Data.playerId || null;
     const p2 = new Player(player2Data.name, player2Data.socketid);
     p2.userId = player2Data.playerId || null;
-    this.engine = new Engine(p1, p2);
+    this.engine = new Engine(p1, p2, this.io);
   }
 
   startGame() {
