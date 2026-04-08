@@ -131,7 +131,7 @@ A Statisztika egy extra funkciót kínáló felület, amely kizárólag a sikere
 
 \section{A játék indítása}
 
-A Snapszer webes alkalmazás úgy lett kialakítva, hogy a játékosok a lehető leggyorsabban, bonyolult beállítások nélkül asztalhoz ülhessenek. A játék indítása egy automatikus ellenfélkereső rendszeren keresztül történik.
+A Snapszer webes alkalmazás úgy lett kialakítva, hogy a játékosok a lehető leggyorsabban, bonyolult beállítások nélkül jtákba kerülhessenek. A játék indítása egy automatikus ellenfélkereső rendszeren keresztül történik.
 
 \subsection{Név megadása}
 
@@ -182,5 +182,44 @@ Fontos különbség a vendég módhoz képest, hogy a bejelentkezett állapotban
 	\label{fig:searching_logged_in}
 \end{figure}
 
-\section{}
+\section{Regisztráció és bejelentkezés}
+\label{sec:auth_user}
+
+A Snapszer webalkalmazás lehetőséget biztosít arra, hogy vendégként, fiók létrehozása nélkül is azonnal asztalhoz ülhess. Azonban a teljes játékélmény és az elért eredményeid megőrzése érdekében érdemes saját felhasználói fiókot regisztrálnod.
+
+\subsection{Fiók létrehozása (Regisztráció)}
+
+A regisztrációs felületet a Főoldalról vagy a Bejelentkezés oldalról tudod elérni. Az űrlap kitöltésekor mindössze egy felhasználónevet és egy jelszót kell megadnod az alábbi szabályok szerint:
+
+\begin{itemize}
+    \item \textbf{Felhasználónév:} A nevednek legalább 3, de legfeljebb 20 karakterből kell állnia. Ez a szabály biztosítja, hogy a játékostársak könnyen azonosítani tudjanak, és a neved tökéletesen, levágás nélkül jelenjen meg a kártyaasztalon.
+    \item \textbf{Jelszó:} A fiókod védelme érdekében a jelszónak minimum 6 karakter hosszúságúnak kell lennie.
+\end{itemize}
+
+\textit{Adatvédelmi megjegyzés: A rendszer a jelszavakat szigorúan titkosítva tárolja. Ez azt jelenti, hogy a tényleges jelszavadhoz senki még az alkalmazás készítője sem férhet hozzá, így a profilod maximális biztonságban van.}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{regisztracio_kicsi}
+    \caption{A regisztrációs űrlap}
+    \label{fig:reg_user}
+\end{figure}
+
+\subsection{Bejelentkezés és annak előnyei}
+
+Már meglévő fiók esetén a Bejelentkezés oldalon tudsz belépni a profilodba a felhasználóneved és jelszavad megadásával. A bejelentkezett állapot a következő kényelmi funkciókat és extra lehetőségeket nyitja meg számodra:
+
+\begin{itemize}
+    \item \textbf{Személyes statisztikák:} Ez a regisztráció legfőbb előnye. A rendszer minden bejelentkezve lejátszott mérkőzésed eredményét elmenti. A Főoldalról elérhető \textit{Statisztika} nézetben bármikor visszanézheted, hány meccset játszottál összesen, ebből mennyit nyertél és vesztettél, így nyomon követheted a saját fejlődésedet.
+    \item \textbf{Gyorsabb játékkeresés:} Bejelentkezés után a rendszer megjegyzi a profilodat. Amikor a "Játék Keresése" gombra kattintasz, már nem kell minden alkalommal újra beírnod a becenevedet; a rendszer automatikusan a fiókod nevét használja, és a keresés azonnal, egyetlen kattintással elindul.
+\end{itemize}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{bejelentkezes_kicsi}
+    \caption{A bejelentkezési felület}
+    \label{fig:login_user}
+\end{figure}
+
 
