@@ -63,15 +63,8 @@ class Room {
       this.broadcastState();
 
       if (result.isRoundOver.gameOver) {
-        const winner = result.isRoundOver.winner;
-        const matchLoser = winner === this.engine.player1 ? this.engine.player2 : this.engine.player1;
+        this.endMatch(result.isRoundOver.winner);
 
-        this.io.to(winner.socketId).emit('matchEnded', { isWinner: true });
-        this.io.to(matchLoser.socketId).emit('matchEnded', { isWinner: false });
-
-        if (this.onGameEnd) {
-          this.onGameEnd(this.roomId);
-        }
         return;
       }
     }
@@ -87,21 +80,27 @@ class Room {
 
         const isRoundOver = this.engine.checkWinCondition(result.winner, result.loser);
 
-        if (!isRoundOver) {
-          this.engine.activePlayer = result.winner;
-          this.broadcastState();
-        } else {
+        if (isRoundOver) {
           this.broadcastState();
           if (isRoundOver.gameOver === true) {
-            const matchLoser = isRoundOver.winner === this.engine.player1 ? this.engine.player2 : this.engine.player1;
-            this.io.to(isRoundOver.winner.socketId).emit('matchEnded', { isWinner: true });
-            this.io.to(matchLoser.socketId).emit('matchEnded', { isWinner: false });
-            if (this.onGameEnd) {
-              this.onGameEnd(this.roomId, isRoundOver.winner, matchLoser);
-            }
+            this.endMatch(isRoundOver.winner)
           }
+        } else {
+          this.engine.activePlayer = result.winner;
+          this.broadcastState();
         }
       }, 2000);
+    }
+  }
+
+  endMatch(winner) {
+    const matchLoser = winner === this.engine.player1 ? this.engine.player2 : this.engine.player1;
+
+    this.io.to(winner.socketId).emit('matchEnded', { isWinner: true });
+    this.io.to(matchLoser.socketId).emit('matchEnded', { isWinner: false });
+
+    if (this.onGameEnd) {
+      this.onGameEnd(this.roomId, winner, matchLoser);
     }
   }
 
@@ -127,7 +126,7 @@ class Room {
         trumpCard: this.engine.trumpCard,
         trumpSuit: this.engine.trumpSuit,
         deckCount: this.engine.deck.cards.length,
-        isClosed: this.engine.isClosed,
+        closedData: this.engine.closedData,
 
         activePlayerName: this.engine.activePlayer ? this.engine.activePlayer.name : null,
         isMyTurn: this.engine.activePlayer === player

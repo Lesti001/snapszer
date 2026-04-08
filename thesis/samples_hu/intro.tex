@@ -59,40 +59,53 @@ A dolgozatban előforduló táblázatok gyűjteménye.
 
 \section{A snapszer szabályai}
 \label{sec:szabalyok}
-A Snapszer (vagy 66) egy 20 lapos magyar kártyapaklival játszott stratégiai játék.
- A szoftveres megvalósítás során az alábbi kétjátékosos szabályrendszert vettem alapul.
+A Snapszer (vagy 66) egy 20 lapos magyar kártyapaklival játszott, magas stratégiai mélységű ütésváltós játék.
+A szoftveres megvalósítás során az alábbi kétjátékosos szabályrendszert vettem alapul.
 
 \subsection{Kártyák értéke és a játék célja}
 A játékban csak az Ász, a Tizes, a Király, a Felső és az Alsó lapok vesznek részt. 
-A cél elsőként elérni a 66 pontot az ütések és bemondások értékéből.
+A körök (osztások) elsődleges célja elérni a 66 pontot az ütések és bemondások értékéből, amellyel a játékos meccspontokat szerezhet. Egy teljes meccs általában 7 meccspontig tart.
 \begin{compactitem}
     \item \textbf{Ász}: 11 pont, \textbf{Tizes}: 10 pont.
     \item \textbf{Király}: 4 pont, \textbf{Felső}: 3 pont, \textbf{Alsó}: 2 pont.
 \end{compactitem}
 
 \subsection{A játék menete}
-A játékosok 5-5 lapot kapnak, az adu (tromf) színét a pakli tetejéről felfordított lap határozza meg.
+A játékosok 5-5 lapot kapnak, a húzópakli (talon) legfelső lapját pedig felfordítják, ez határozza meg az adu (tromf) színét.
 \begin{compactitem}
-    \item \textbf{Ütések}: Amíg a húzható pakli (talon) el nem fogy, nem kötelező sem színre színt tenni, sem ütni. 
-    Az ütést a hívott szín nagyobb lapja vagy az adu viszi el.
-    \item \textbf{Adu ereje}: Az adu szín bármely más színű lapnál erősebb, így az aduval való ütés felülbírálja a hívott színt függetlenül a lapértéktől.
-    \item \textbf{Laphúzás}: Minden ütés után mindkét játékos húz egy új lapot, az ütést nyerő játékossal kezdve.
-    \item \textbf{Kényszerek}: A talon elfogyása után színkényszer és ütéskényszer lép érvénybe: a hívott színnel megegyező lapot kell tenni, és ha lehetséges, felül kell ütni azt.
+    \item \textbf{Nyílt játék (Talon fázis)}: Amíg a húzható pakli el nem fogy, vagy le nem zárják, nem kötelező sem színre színt tenni, sem ütni. A hívott lapra bármilyen kártya dobható.
+    \item \textbf{Ütések és az adu ereje}: Az ütést a hívott szín nagyobb értékű lapja, vagy (ha ilyet nem tettek) az adu viszi el. Az adu minden más színt felülbírál, függetlenül a másik lap értékétől.
+    \item \textbf{Laphúzás}: Minden ütés után mindkét játékos húz egy új lapot a talonból, hogy újra 5 lapjuk legyen. Mindig az ütést megnyerő játékos húz először.
+\end{compactitem}
+
+\subsection{A takarás (zárás) és a kényszerek}
+A takarás a játék legkomplexebb stratégiai eleme, amely azonnal végjátékot eredményez.
+\begin{compactitem}
+    \item \textbf{A takarás feltételei}: Kizárólag a hívásra jogosult (soron lévő) játékos dönthet a talon lezárása mellett, amennyiben a pakliban még van legalább 3 lap (a lefordított lapok és a nyitott adu).
+    \item \textbf{A takarás menete}: A játékos a nyitott adu kártyát keresztbe fordítja a paklin. Ekkor a húzás lehetősége mindkét fél számára megszűnik, és a kört a kézben maradt lapokkal kell befejezni. A védekező játékos addig megszerzett pontjai a végső elszámoláshoz „befagynak”. A takaró játékos vállalja, hogy a maradék lapjaival eléri a 66 pontot.
+    \item \textbf{Kényszerek}: A takarás pillanatától (vagy amint a talon magától elfogy) szigorú szín és ütéskényszer lép életbe a védekező játékosra, az alábbi prioritási sorrendben:
+    \begin{enumerate}
+        \item Kötelező a hívott színnel megegyező lapot tenni, ÉS ha van belőle nagyobb, kötelező felülütni (megnyerni az ütést).
+        \item Ha van hívott szín, de csak kisebb, azt kell tenni (alárakás).
+        \item Ha nincs hívott szín, kötelező adut tenni (adukényszer).
+        \item Kizárólag akkor lehet más színű (szemét) lapot eldobni, ha sem a hívott színből, sem aduból nincs egyetlen darab sem a játékos kezében.
+    \end{enumerate}
 \end{compactitem}
 
 \subsection{Speciális szabályok}
 \begin{compactitem}
-    \item \textbf{Bemondások}: Király és Felső pár esetén „húsz” (20 pont), adu színben „negyven” (40 pont) mondható be az első kijátszáskor.
-    \item \textbf{Adu csere}: Az adu alsó birtokosa kicserélheti lapját a lent lévő adu lapra a laphúzás előtt, de csak amikőr a játékos van soron.
+    \item \textbf{Bemondások}: Ha egy játékos kezében azonos színből Király és Felső is található, híváskor bemondhatja azt. Ez normál szín esetén „húsz” (20 pont), adu színben „negyven” (40 pont). A pontok megadásának feltétele, hogy a játékos a kör során legalább egy ütést szerezzen.
+    \item \textbf{Adu csere}: Az adu alsó birtokosa (amennyiben ő jön hívásra) kicserélheti lapját a talon alatt lévő nyitott adu kártyára. \textbf{Kivétel:} Takarás megtörténte után ez a csere már szabálytalan és nem hajtható végre.
 \end{compactitem}
 
-\subsection{Végső pontozás}
-A játszma végén a nyertes pontjait az ellenfél pontjai határozza meg:
+\subsection{Végső pontozás (Meccspontok)}
+A játszma (egy kör) végén a nyertes a következőképpen kap meccspontokat az ellenfél (védekező) elért ütéspontjai alapján:
 \begin{compactitem}
-    \item \textbf{3 pont}: Ha az ellenfélnek nincs ütése.
+    \item \textbf{3 pont}: Ha az ellenfélnek egyáltalán nincs ütése (0 pont).
     \item \textbf{2 pont}: Ha az ellenfél 33 pont alatt maradt.
     \item \textbf{1 pont}: Ha az ellenfél elérte a 33 pontot.
-    \item \textbf{Utolsó ütés}: Amennyiben a játék végéig egyik fél sem éri el a 66 pontot, az utolsó ütést megszerző játékos nyeri a játszmát.
+    \item \textbf{Takarás bukása}: Ha a takaró játékos a kényszerek ellenére sem éri el a 66 pontot (vagy az ellenfél hamarabb eléri azt), a takaró elbukta a kört. Ekkor a védekező játékos kap 2 meccspontot (vagy 3-at, ha a takaró pont nélkül maradt).
+    \item \textbf{Utolsó ütés}: Ha normál játék során a talon elfogy, és a kezben lévő lapok lejátszása végéig egyik fél sem éri el a 66 pontot, automatikusan az utolsó ütést elvivő játékos nyeri a kört.
 \end{compactitem}
 
 \section{Motiváció}

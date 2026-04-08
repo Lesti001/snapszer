@@ -35,8 +35,7 @@ class Player {
       throw new Error("No cards to add to wonCards!");
     } 
 
-    this.wonCards.push(cards[0]);
-    this.wonCards.push(cards[1]);
+    this.wonCards.push(cards[0], cards[1]);
   }
 
   removeCard(index) {
