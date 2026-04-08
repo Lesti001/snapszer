@@ -223,3 +223,39 @@ Már meglévő fiók esetén a Bejelentkezés oldalon tudsz belépni a profilodb
 \end{figure}
 
 
+\section{Játékmenet}
+\label{sec:jatekmenet}
+
+Ebben a fejezetben a mérkőzések során tapasztalható tényleges játékmenetet és a virtuális kártyaasztal funkcióit mutatom be. Részletesen végigvesszük a kártyák kijátszásának menetét, az aktuális pontok folyamatos megjelenítését, a szabálytalan (illegális) lépések vizuális és szöveges jelzését, valamint az olyan speciális Snapszer-szabályok felületi kezelését, mint a 20 és 40 bemondása, illetve a pakli takarása.
+
+\subsection{Kártyakijátszás és szabályosság vizsgálata}
+
+A játéktéren a saját lapjaink a képernyő alsó részén helyezkednek el. Amikor a mi körünk következik, egy kártya kijátszásához elegendő csupán bal egérgombbal rákattintani a kiválasztott lapra. A rendszer a háttérben minden lépésnél automatikusan ellenőrzi a játék aktuális állását és a Snapszer szabályait.
+
+\vspace{1em}
+\noindent\textbf{Sikeres kártyakijátszás}
+
+Amennyiben a választott lépés szabályos, a kattintás után a kártya azonnal az asztal közepére kerül. Ezt követően a lépésjog automatikusan átkerül az ellenfélhez.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{sikeres_lepes}
+    \caption{Szabályos lépés: a kártya az asztal közepére kerül}
+    \label{fig:valid_move}
+\end{figure}
+
+\vspace{1em}
+\noindent\textbf{Illegális lépés jelzése}
+
+Ha olyan kártyát próbálunk meg lerakni, amely az adott szituációban nem szabályos (mert a pakli elfogyása vagy takarása után megsértjük a színkényszert vagy a felülütési kényszert), a rendszer megakadályozza a lap kijátszását. 
+
+Ilyenkor az oldal egyértelmű vizuális visszajelzést ad: a kiválasztott kártya egy vastag piros keretet kap, és egy rövid, figyelmeztető rezgő animációt játszik le. Ezzel egy időben a képernyő felső részén megjelenik egy felugró ablak (popup), amely szövegesen is tájékoztat a hiba okáról (például figyelmeztet, hogy kötelező az ütés- vagy a színkényszer betartása).
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{illegalis_lepes}
+    \caption{Szabálytalan lépés vizuális jelzése és a felugró hibaüzenet}
+    \label{fig:invalid_move}
+\end{figure}
+

@@ -7,7 +7,7 @@ class Engine {
     this.player2 = player2;
     this.trumpSuit = null;
     this.deck = new Deck();
-    this.closedData = null; //Null if round is not close
+    this.closedData = null; //Null if round is not closed
     this.trumpCard = null;
     this.boardCard = null;
     this.secondBoardCard = null;

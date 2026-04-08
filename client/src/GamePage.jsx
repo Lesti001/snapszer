@@ -213,19 +213,33 @@ const GamePage = () => {
         </div>
       </div>
 
-      <div className={`absolute bottom-6 left-6 p-4 rounded-2xl shadow-xl w-56 z-20 transition-all ${gameState.isMyTurn ? 'bg-[#D39696]/20 border-2 border-[#D39696]' : 'bg-[#D39696]/10 border border-[#D39696]/20'} backdrop-blur-sm`}>
-        <h2 className="text-xl font-bold text-gray-700">Te</h2>
-        {gameState.isMyTurn && <span className="text-xs font-semibold text-[#D39696] uppercase tracking-wider">Te jössz!</span>}
-        <div className="mt-3 text-sm space-y-2">
-          <div className="flex justify-between items-center bg-white/50 px-3 py-1.5 rounded-lg">
-            <span className="text-gray-600 font-medium">Meccspont:</span>
-            <span className="font-bold text-[#D39696] text-base">{gameState.myGamePoints} / 7</span>
-          </div>
-          <div className="flex justify-between items-center bg-white/50 px-3 py-1.5 rounded-lg">
-            <span className="text-gray-600 font-medium">Ütéspont:</span>
-            <span className="font-bold text-gray-800 text-base">{gameState.myPoints}</span>
+      <div className="absolute bottom-6 left-6 flex items-end gap-4 z-20">
+        
+        <div className={`p-4 rounded-2xl shadow-xl w-56 transition-all ${gameState.isMyTurn ? 'bg-[#D39696]/20 border-2 border-[#D39696]' : 'bg-[#D39696]/10 border border-[#D39696]/20'} backdrop-blur-sm`}>
+          <h2 className="text-xl font-bold text-gray-700">Te</h2>
+          {gameState.isMyTurn && <span className="text-xs font-semibold text-[#D39696] uppercase tracking-wider">Te jössz!</span>}
+          <div className="mt-3 text-sm space-y-2">
+            <div className="flex justify-between items-center bg-white/50 px-3 py-1.5 rounded-lg">
+              <span className="text-gray-600 font-medium">Meccspont:</span>
+              <span className="font-bold text-[#D39696] text-base">{gameState.myGamePoints} / 7</span>
+            </div>
+            <div className="flex justify-between items-center bg-white/50 px-3 py-1.5 rounded-lg">
+              <span className="text-gray-600 font-medium">Ütéspont:</span>
+              <span className="font-bold text-gray-800 text-base">{gameState.myPoints}</span>
+            </div>
           </div>
         </div>
+
+        {!gameState.closedData && gameState.deckCount >= 3 && gameState.isMyTurn && matchResult === null && (
+          <div className="mb-2 z-[60]">
+            <button
+              onClick={() => socket.emit('close')}
+              className="bg-[#D39696] hover:bg-[#b87c7c] text-white font-bold py-2 px-6 sm:px-8 rounded-full shadow-[0_4px_14px_rgba(211,150,150,0.5)] border border-white/30 transition-all duration-200 transform hover:scale-105 active:scale-95 text-xs sm:text-sm uppercase tracking-wider whitespace-nowrap"
+            >
+              Takarás
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="absolute top-0 left-1/2 -translate-x-1/2 z-10">
@@ -293,17 +307,6 @@ const GamePage = () => {
                   style={{ left: `${i * 3}px`, zIndex: i + 10 }}
                 />
               ))}
-
-              {gameState.deckCount >= 3 && gameState.isMyTurn && matchResult === null && (
-                <div className="absolute top-[calc(50%+130px)] sm:top-[calc(50%+150px)] md:top-[calc(50%+170px)] left-2 sm:left-8 z-[60]">
-                  <button
-                    onClick={() => socket.emit('close')}
-                    className="bg-[#D39696] hover:bg-[#b87c7c] text-white font-bold py-2 px-8 rounded-full shadow-[0_4px_14px_rgba(211,150,150,0.5)] border border-white/30 transition-all duration-200 transform hover:scale-105 active:scale-95 text-sm uppercase tracking-wider"
-                  >
-                    Takarás
-                  </button>
-                </div>
-              )}
             </>
           ) : (
             <div className="absolute top-1/2 -translate-y-1/2 left-0 w-16 h-16 sm:w-20 sm:h-20 bg-white/80 backdrop-blur-sm border-2 border-gray-300 rounded-xl shadow-md flex items-center justify-center">
