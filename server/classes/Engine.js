@@ -77,16 +77,27 @@ class Engine {
     const announcement = player.playAnnouncement(card, this.trumpSuit);
     if (announcement) {//ANNOUNCEMENT IS BEING PLAYED
       player.addRoundPoints(announcement.announcementValue);
+      if (announcement.announcementValue == 20) {
+        this.io.to(this.player1.socketId).emit('announceMentMessage', {
+          msg: `${player.name} ${announcement.announcementValue}-at játszott`,
+          color: player === this.player1 ? 'blue' : 'orange'
+        });
 
-      this.io.to(this.player1.socketId).emit('announceMentMessage', {
-        msg: `Játékos: ${player.name} ${announcement.announcementValue}-t játszott`,
-        color: player === this.player1 ? 'blue' : 'orange'
-      });
+        this.io.to(this.player2.socketId).emit('announceMentMessage', {
+          msg: `${player.name} ${announcement.announcementValue}-at játszott`,
+          color: player === this.player2 ? 'blue' : 'orange'
+        });
+      } else {
+        this.io.to(this.player1.socketId).emit('announceMentMessage', {
+          msg: `${player.name} ${announcement.announcementValue}-et játszott`,
+          color: player === this.player1 ? 'blue' : 'orange'
+        });
 
-      this.io.to(this.player2.socketId).emit('announceMentMessage', {
-        msg: `Játékos: ${player.name} ${announcement.announcementValue}-t játszott`,
-        color: player === this.player2 ? 'blue' : 'orange'
-      });
+        this.io.to(this.player2.socketId).emit('announceMentMessage', {
+          msg: `${player.name} ${announcement.announcementValue}-et játszott`,
+          color: player === this.player2 ? 'blue' : 'orange'
+        });
+      }
 
       //IF THE PLAYER WINS THE ROUND WITH THE ANNOUNCEMENT
       const winResult = this.checkWinCondition(player, (player === this.player1 ? this.player2 : this.player1));

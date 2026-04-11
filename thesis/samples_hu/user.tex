@@ -129,9 +129,15 @@ A Statisztika egy extra funkciót kínáló felület, amely kizárólag a sikere
 	\label{fig:statpage}
 \end{figure}
 
+\subsection{Grafikai elemek és erőforrások}
+
+A webalkalmazás vizuális megjelenésének egyik legfontosabb eleme a játéktér és maguk a kártyalapok. A fejlesztés során cél volt a klasszikus, jól ismert kártyajáték hangulatának visszaadása a böngészőben is. 
+
+Ehhez a hagyományos magyar kártya digitalizált változatára volt szükség. A mérkőzések során megjelenő, a kártyákat ábrázoló képfájlokat külső forrásból \cite{aduasz} szereztem be, majd azokat integráltam a főoldal (két dísz kép) és a játék oldalba.
+
 \section{A játék indítása}
 
-A Snapszer webes alkalmazás úgy lett kialakítva, hogy a játékosok a lehető leggyorsabban, bonyolult beállítások nélkül jtákba kerülhessenek. A játék indítása egy automatikus ellenfélkereső rendszeren keresztül történik.
+A Snapszer webes alkalmazás úgy lett kialakítva, hogy a játékosok a lehető leggyorsabban, bonyolult beállítások nélkül játékba kerülhessenek. A játék indítása egy automatikus ellenfélkereső rendszeren keresztül történik.
 
 \subsection{Név megadása}
 
@@ -259,3 +265,140 @@ Ilyenkor az oldal egyértelmű vizuális visszajelzést ad: a kiválasztott kár
     \label{fig:invalid_move}
 \end{figure}
 
+\subsection{Játékosállapot és pontszámok kijelzése}
+
+A játéktér bal felső és alsó részén folyamatosan látható mindkét játékoshoz (a felhasználóhoz és az ellenfélhez) tartozó információs panel. Ezek a kis ablakok nyújtanak kulcsfontosságú visszajelzést a mérkőzés aktuális állásáról és a játékosok státuszáról.
+
+Ezek a panelek az alábbi információkat jelenítik meg:
+\begin{itemize}
+    \item \textbf{Játékos neve:} Az azonosításhoz használt becenév (felhasználó esetében "Te").
+    \item \textbf{Lépés státusz:} Szöveges jelzés arról, hogy az adott játékos következik-e.
+    \item \textbf{Meccspont:} A mérkőzés megnyeréséhez szükséges összesített pontszám.
+    \item \textbf{Ütéspont:} Az aktuális körben (partiban) a játékos által elvitt kártyák összesített értéke. Cél a 66 pont elérése.
+\end{itemize}
+
+\vspace{1em}
+\noindent\textbf{Példa a lépésjog jelzésére és a vizuális kiemelésre}
+
+A rendszer vizuális visszajelzést ad arról, hogy éppen ki következik. A lépésjog egyértelmű jelzése érdekében az éppen soron lévő játékos információs ablaka kap egy színezett keretet.
+
+Tekintsük a \ref{fig:status_windows}. ábrát példaként egy olyan játékhelyzetre, ahol az ellenfél következik:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{statusz_ellenfel}
+    \hspace{2em}
+    \includegraphics[width=0.3\textwidth]{statusz_sajat}
+    \caption{Információs panelek: (balra) az ellenfél következik, (jobbra) a saját állapotunk várakozás közben}
+    \label{fig:status_windows}
+\end{figure}
+
+Ebben a szituációban az ellenfelünk, "András" következik. Ahogy a bal oldali ábrán látható:
+\begin{itemize}
+    \item Az ő panelje egy vastagabb, színezett keretet kapott.
+    \item A neve alatt megjelenik az "Ő KÖVETKEZIK" szöveges jelzés.
+    \item A panelről leolvasható, hogy 2 meccspontja és 21 ütéspontja van.
+\end{itemize}
+
+A jobb oldali ábra a mi saját állapotunkat (\textbf{"Te"}) mutatja ebben a pillanatban. Mivel nem mi    következünk:
+\begin{itemize}
+    \item A mi panelünk körül nincs kiemelő keret.
+    \item Nincs szöveges jelzés a név alatt.
+    \item Látható, hogy jelenleg 0 meccspontunk és 14 ütéspontunk van.
+\end{itemize}
+
+Amint András lerakja a kártyáját, a kiemelés azonnal eltűnik az ő ablakáról, és a keret meg fog jelenni a mi panelünk körül, jelezve, hogy ránk szállt a lépésjog.
+
+\subsection{Saját ütések megtekintése}
+
+A Snapszer kártyajátékban a stratégia egyik kulcseleme a már kijátszott lapok és a saját ütések ismerete. A webalkalmazás egy interaktív felületi elemmel segíti a játékost abban, hogy bármikor gyorsan ellenőrizhesse a már megszerzett lapjait.
+
+A funkció a játéktér jobb alsó sarkában található. A felület alaphelyzetben helytakarékossági okokból csak egy lefordított kártyapaklit mutat, a részletes lista pedig kizárólag interakcióra jelenik meg:
+
+\begin{itemize}
+    \item \textbf{Dinamikus megjelenítés:} Az "ÜTÉSEID" feliratú információs ablak csak akkor válik láthatóvá, amikor a felhasználó a kurzort a pakli fölé viszi.
+    \item \textbf{Vizuális tartalom:} Ebben a felugró panelben megjelenik az összes olyan kártya, amelyet a játékos az adott körben eddig megszerzett. Ez segíti hátralévő lapok kikövetkeztetését.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{utesek_hover}
+    \caption{Az ütések részletes megjelenítése az egérkurzor rávitelére}
+    \label{fig:tricks_hover}
+\end{figure}
+
+\section{Speciális lépések és stratégiai lehetőségek}
+\label{sec:special_moves}
+
+A Snapszer kártyajáték izgalmát és taktikai mélységét a hagyományos ütéseken túlmutató speciális lépések adják. A webalkalmazás ezeket a lehetőségeket intuitív módon és vizuális segítséggel támogatja.
+
+\subsection{Húsz és negyven bemondása}
+
+A játék során extra pontokat szerezhetünk, ha azonos színű Király és Felső párral rendelkezünk. A szoftver ezt a folyamatot teljesen automatizálta:
+
+\begin{itemize}
+    \item \textbf{Aktiválás:} Amint a játékos kijátssza a nála lévő páros egyik tagját (Királyt vagy Felsőt), és a kezében van a pár másik fele, a rendszer ezt azonnal felismeri.
+    \item \textbf{Vizuális visszajelzés:} A bemondás tényét egy középen felül megjelenő felugró ablak jelzi, amely mutatja a szerzett pontértéket (aduszín esetén 40, egyébként 20 pont).
+    \item \textbf{Pontozás:} A pontok automatikusan hozzáadódnak a játékos ütéspontjaihoz, és a pontszámkijelző azonnal frissül.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{bemondas_popup}
+    \caption{A 20/40 bemondást jelző felugró ablak}
+    \label{fig:announcement}
+\end{figure}
+
+\subsection{Aducsere}
+
+Ha a játékosnál van az aduszín legalacsonyabb lapja (az Alsó), lehetősége van azt kicserélni az asztal közepén felütött adukártyára.
+
+\begin{itemize}
+    \item \textbf{Szabályos csere:} Az aducserére csak akkor van lehetőség, ha nálunk van az adu alsó, és éppen mi következünk (lépésjogunk van). A végrehajtáshoz egyszerűen rá kell kattintani az asztalon fekvő, félig a pakli alatt lévő adukártyára. Ekkor a két lap helyet cserél.
+    
+    \item \textbf{Szabálytalan csere jelzése:} Amennyiben a játékos akkor kísérel meg adut cserélni, amikor a feltételek nem teljesülnek (például nincs a kezében az adu alsó). A rendszer hibaüzenettel akadályozza meg a műveletet. 
+    
+    Ilyenkor az asztalon fekvő adukártya egy vastag piros keretet kap, és egy rövid, figyelmeztető rezgő animációt játszik le. Ez a vizuális visszajelzés egyértelműen jelzi a felhasználónak, hogy a csere az adott pillanatban nem hajtható végre.
+\end{itemize}
+
+\subsection{Takarás (A pakli lezárása)}
+
+A takarás a legkockázatosabb, de egyben a legtöbb pontot hozó stratégiai elem. Ezzel jelezzük, hogy a kezünkben lévő lapokból további húzás nélkül is képesek vagyunk megnyerni a kört.
+
+\begin{itemize}
+    \item \textbf{Elérhetőség:} A "Takarás" gomb csak akkor jelenik meg a felületen, ha mi vagyunk soron, és még legalább 3 lefordított lap található a talonban (a húzópakliban).
+    \item \textbf{Hatás:} A gombra kattintva a pakli "lezárul". Ezután nincs több lapfelvétel, és a játékosoknak azonnal tartaniuk kell a szín és ütéskényszert.
+    \item \textbf{Elhelyezkedés:} A gomb a felhasználó saját állapotjelző kisablaka (státusz panel) mellett jelenik meg.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{takaras}
+    \caption{A Takarás gomb megjelenése a játéktéren}
+    \label{fig:close_deck}
+\end{figure}
+
+\vspace{1em}
+\noindent\textbf{A takarás vizuális visszajelzései}
+
+Miután a játékos a gombra kattintva lezárja a paklit, a rendszer két egyértelmű vizuális jelzéssel tudatja a résztvevőkkel, hogy a játékmenet megváltozott, és érvénybe lépett a szín és ütéskényszer.
+
+\begin{itemize}
+    \item \textbf{A talon lezárása:} A takarás pillanatában a korábban felütött adukártya  rákerül a talon (húzópakli) tetejére.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.3\textwidth]{takaras_vizualis_deck}
+      \caption{A talon lezárása: az adukártya a pakli tetejére kerül}
+      \label{fig:deck_closed_visual}
+    \end{figure}
+    \item \textbf{Megerősítő ablak:} A művelet végrehajtásakor a képernyő közepén felül egy rövid ideig látható felugró ablak is megjelenik, amely szövegesen is jelzi a takarás tényét mindkét játékos számára.
+\end{itemize}
+
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{takaras_popup}
+    \caption{A takarást megerősítő felugró ablak}
+    \label{fig:close_popup}
+\end{figure}
