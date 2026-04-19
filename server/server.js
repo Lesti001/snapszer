@@ -136,7 +136,7 @@ io.on('connection', (socket) => {
                   player_id: winner.userId,
                   opponent_name: loser.name,
                   match_status: 'WON',
-                  final_score: winner.gamePoints === undefined ? 'Disconnect' : `${winner.gamePoints} - ${loser.gamePoints}`
+                  final_score: winner.gamePoints !== undefined ? `${winner.gamePoints} - ${loser.gamePoints}` : 'Kilépett'
                 });
 
                 const wPoints = Number(winner.gamePoints) || 0;
@@ -162,7 +162,7 @@ io.on('connection', (socket) => {
                   player_id: loser.userId,
                   opponent_name: winner.name,
                   match_status: 'LOST',
-                  final_score: loser.gamePoints === undefined ? 'Disconnect' : `${loser.gamePoints} - ${winner.gamePoints}`
+                  final_score: loser.gamePoints !== undefined ? `${loser.gamePoints} - ${winner.gamePoints}` : 'Kilépett'
                 });
 
                 const lPoints = Number(loser.gamePoints) || 0;
@@ -285,7 +285,7 @@ io.on('connection', (socket) => {
             player_id: winner.userId,
             opponent_name: loser.name,
             match_status: 'WON',
-            final_score: 'Disconnect'
+            final_score: 'Kilépett'
           });
 
           const wPoints = Number(winner.gamePoints) || 0;
@@ -311,7 +311,7 @@ io.on('connection', (socket) => {
             player_id: loser.userId,
             opponent_name: winner.name,
             match_status: 'LOST',
-            final_score: 'Disconnect'
+            final_score: 'Kilépett'
           });
 
           const lPoints = Number(loser.gamePoints) || 0;

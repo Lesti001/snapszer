@@ -15,7 +15,7 @@ const StatsPage = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:3000/api/stats', {
+        const response = await fetch('/api/stats', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -47,8 +47,8 @@ const StatsPage = () => {
   }
 
   const { stats, history } = statsData || {};
-  const winRate = stats?.total_games > 0 
-    ? Math.round((stats.total_wins / stats.total_games) * 100) 
+  const winRate = stats?.total_games > 0
+    ? Math.round((stats.total_wins / stats.total_games) * 100)
     : 0;
 
   return (
@@ -56,7 +56,7 @@ const StatsPage = () => {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold text-gray-700">Saját Statisztikám</h1>
-          <button 
+          <button
             onClick={() => navigate('/')}
             className="bg-[#D39696] hover:bg-[#c58585] text-white font-medium px-6 py-2 rounded-xl shadow-sm transition-all duration-200 active:scale-95"
           >
