@@ -1,0 +1,114 @@
+% !TeX root = ../elteikthesis_hu.tex
+
+\chapter{Bevezetés}
+\label{ch:intro}
+
+A modern full-stack fejlesztés egyik legösszetettebb feladata a valós idejű,
+ többjátékos rendszerek létrehozása, ahol a kliensoldali élmény és a szerveroldali
+  biztonság egyaránt kritikus. Jelen dolgozat ezen kihívásokat mutatja be
+   a Snapszer kártyajáték webes adaptációján keresztül. 
+   A fejezet elsőként a fejlesztés céljait rögzítő témabejelentőt tartalmazza, 
+   majd részletezi a játék azon szabályait, amelyek az implementáció logikai
+    alapját képezik.
+
+\section{Témabejelentő}
+A dolgozatom témája egy Online Többjátékos Snapszer Webes Játék megtervezése és implementálása. A célom, hogy egy letisztult modern játékfelületet létrehozzak, ami optimális játékélményt biztosít. A projekt bemutatja, hogy hogyan oldható meg egy valós idejű szinkronizációs játék webes környezetben.
+
+A snapszer egy kiemelten népszerű kártyajáték itthon, melynek online verziója magas követelményeket támaszt a valós idejű interakció és a precíz játékszabály validáció terén. Míg asztali és mobil alkalmazások léteznek, webes környezetben még nincsen letisztult megvalósítása a játéknak.
+
+A dolgozatom fő feladata, hogy gyakorlati példán keresztül bemutassa a full-stack webfejlesztés lehetőségeit. Egy olyan összetett rendszert valósít meg, amelynél elengedhetetlen a minimális késleltetéssel járó kommunikáció és a szerver oldali, biztonságos játékállapot kezelés. A választott JavaScript technológiai stack (React.js, Node.js, Express.js) azért ideális, mert egységes és hatékony alapot biztosít mind a felhasználói felület, mind a háttérben futó játékszerver komplex kihívásainak megoldásához és egyetlen nyelvet használ az egész stack.
+
+\section{A dolgozat felépítése}
+
+A dolgozat négy fő fejezetből, valamint az Irodalomjegyzékből, az Ábrajegyzékből és a Táblázatok jegyzékéből áll.
+
+\vspace{1em}
+\noindent\textbf{1. Bevezetés}
+
+Itt mutatom be a témaválasztásom motivációját, a snapszer kártyajáték részletes szabályait, valamint a fejlesztés alapjául szolgáló témabejelentő is itt kapott helyet.
+
+\vspace{1em}
+\noindent\textbf{2. Felhasználói dokumentáció}
+
+Ez egy kézikönyv a játékosok számára, amelyből megismerhetik a program futtatásához szükséges követelményeket és az alkalmazás funkcióit. Itt részletesen bemutatom a weboldal felépítését, az oldaltérképet, az automatikus meccskeresés és a játék indításának folyamatát. Továbbá a fejezet tartalmaz egy lépésről lépésre haladó útmutatót is, amely a tényleges játékmenetet és a virtuális kártyaasztal használatát mutatja be.
+
+\vspace{1em}
+\noindent\textbf{3. Fejlesztői dokumentáció}
+
+Ez a program technikai leírása, amely az alkalmazás egy későbbi módosítása vagy bővítése esetén nyújt segítséget. Itt található a rendszer architektúrájának bemutatása, az alkalmazott webes technológiák (kliens és szerver oldal) ismertetése, az adatbázis felépítése, valamint a valós idejű többjátékos szinkronizáció megvalósításának részletei.
+
+\vspace{1em}
+\noindent\textbf{4. Összegzés}
+
+A dolgozat lezárásaként értékelem az elvégzett munkát, összegzem a fejlesztés során szerzett tapasztalatokat, és felvázolom az alkalmazás lehetséges jövőbeli továbbfejlesztési irányait.
+
+\vspace{1em}
+\noindent\textbf{Irodalomjegyzék}
+
+Itt hivatkozom a munkám során használt cikkekre, hivatalos technológiai dokumentációkra és eszközökre.
+
+\vspace{1em}
+\noindent\textbf{Ábrajegyzék}
+
+A dolgozatban előforduló ábrák, diagramok és képernyőképek gyűjteménye.
+
+\vspace{1em}
+\noindent\textbf{Táblázatok jegyzéke}
+
+A dolgozatban előforduló táblázatok gyűjteménye.
+
+\section{A snapszer szabályai}
+\label{sec:szabalyok}
+A Snapszer (vagy 66) egy 20 lapos magyar kártyapaklival játszott, magas stratégiai mélységű ütésváltós játék.
+A szoftveres megvalósítás során az alábbi kétjátékosos szabályrendszert vettem alapul.
+
+\subsection{Kártyák értéke és a játék célja}
+A játékban csak az Ász, a Tizes, a Király, a Felső és az Alsó lapok vesznek részt. 
+A körök (osztások) elsődleges célja elérni a 66 pontot az ütések és bemondások értékéből, amellyel a játékos meccspontokat szerezhet. Egy teljes meccs általában 7 meccspontig tart.
+\begin{compactitem}
+    \item \textbf{Ász}: 11 pont, \textbf{Tizes}: 10 pont.
+    \item \textbf{Király}: 4 pont, \textbf{Felső}: 3 pont, \textbf{Alsó}: 2 pont.
+\end{compactitem}
+
+\subsection{A játék menete}
+A játékosok 5-5 lapot kapnak, a húzópakli (talon) legfelső lapját pedig felfordítják, ez határozza meg az adu (tromf) színét.
+\begin{compactitem}
+    \item \textbf{Nyílt játék (Talon fázis)}: Amíg a húzható pakli el nem fogy, vagy le nem zárják, nem kötelező sem színre színt tenni, sem ütni. A hívott lapra bármilyen kártya dobható.
+    \item \textbf{Ütések és az adu ereje}: Az ütést a hívott szín nagyobb értékű lapja, vagy (ha ilyet nem tettek) az adu viszi el. Az adu minden más színt felülbírál, függetlenül a másik lap értékétől.
+    \item \textbf{Laphúzás}: Minden ütés után mindkét játékos húz egy új lapot a talonból, hogy újra 5 lapjuk legyen. Mindig az ütést megnyerő játékos húz először.
+\end{compactitem}
+
+\subsection{A takarás (zárás) és a kényszerek}
+A takarás a játék legkomplexebb stratégiai eleme, amely azonnal végjátékot eredményez.
+\begin{compactitem}
+    \item \textbf{A takarás feltételei}: Kizárólag a hívásra jogosult (soron lévő) játékos dönthet a talon lezárása mellett, amennyiben a pakliban még van legalább 3 lap (a lefordított lapok és a nyitott adu).
+    \item \textbf{A takarás menete}: A játékos a nyitott adu kártyát keresztbe fordítja a paklin. Ekkor a húzás lehetősége mindkét fél számára megszűnik, és a kört a kézben maradt lapokkal kell befejezni. A védekező játékos addig megszerzett pontjai a végső elszámoláshoz „befagynak”. A takaró játékos vállalja, hogy a maradék lapjaival eléri a 66 pontot.
+    \item \textbf{Kényszerek}: A takarás pillanatától (vagy amint a talon magától elfogy) szigorú szín és ütéskényszer lép életbe a védekező játékosra, az alábbi prioritási sorrendben:
+    \begin{enumerate}
+        \item Kötelező a hívott színnel megegyező lapot tenni, ÉS ha van belőle nagyobb, kötelező felülütni (megnyerni az ütést).
+        \item Ha van hívott szín, de csak kisebb, azt kell tenni (alárakás).
+        \item Ha nincs hívott szín, kötelező adut tenni (adukényszer).
+        \item Kizárólag akkor lehet más színű (szemét) lapot eldobni, ha sem a hívott színből, sem aduból nincs egyetlen darab sem a játékos kezében.
+    \end{enumerate}
+\end{compactitem}
+
+\subsection{Speciális szabályok}
+\begin{compactitem}
+    \item \textbf{Bemondások}: Ha egy játékos kezében azonos színből Király és Felső is található, híváskor bemondhatja azt. Ez normál szín esetén „húsz” (20 pont), adu színben „negyven” (40 pont). A pontok megadásának feltétele, hogy a játékos a kör során legalább egy ütést szerezzen.
+    \item \textbf{Adu csere}: Az adu alsó birtokosa (amennyiben ő jön hívásra) kicserélheti lapját a talon alatt lévő nyitott adu kártyára. \textbf{Kivétel:} Takarás megtörténte után ez a csere már szabálytalan és nem hajtható végre.
+\end{compactitem}
+
+\subsection{Végső pontozás (Meccspontok)}
+A játszma (egy kör) végén a nyertes a következőképpen kap meccspontokat az ellenfél (védekező) elért ütéspontjai alapján:
+\begin{compactitem}
+    \item \textbf{3 pont}: Ha az ellenfélnek egyáltalán nincs ütése (0 pont).
+    \item \textbf{2 pont}: Ha az ellenfél 33 pont alatt maradt.
+    \item \textbf{1 pont}: Ha az ellenfél elérte a 33 pontot.
+    \item \textbf{Takarás bukása}: Ha a takaró játékos a kényszerek ellenére sem éri el a 66 pontot (vagy az ellenfél hamarabb eléri azt), a takaró elbukta a kört. Ekkor a védekező játékos kap 2 meccspontot (vagy 3-at, ha a takaró pont nélkül maradt).
+    \item \textbf{Utolsó ütés}: Ha normál játék során a talon elfogy, és a kezben lévő lapok lejátszása végéig egyik fél sem éri el a 66 pontot, automatikusan az utolsó ütést elvivő játékos nyeri a kört.
+\end{compactitem}
+
+\section{Motiváció}
+A projekt megvalósítását elsősorban az motiválta, hogy a snapszer egy nagy múltú és rendkívül népszerű kártyajáték, amely jelenleg nem rendelkezik modern, böngészőből azonnal játszható, minőségi adaptációval. Egy olyan platform létrehozása volt a célom, amely letöltés, telepítés és akár regisztráció nélkül, letisztult felülettel teszi elérhetővé ezt a játékot a szélesebb közönség számára, tiszteletben tartva a tradicionális szabályokat.
+
+Szakmai oldalról egy valós idejű, többjátékos rendszer felépítése kiemelkedő kihívást jelentett, ami tökéletes lehetőséget biztosított a modern webes technológiák elmélyítésére. A kliens és szerver közötti folyamatos szinkronizáció, a biztonságos állapotkezelés és a reszponzív felület kialakítása révén a projekt komplex keretet ad a full-stack JavaScript fejlesztői képességem alkalmazásához és fejlődéséhez.

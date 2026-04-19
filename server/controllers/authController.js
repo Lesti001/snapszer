@@ -9,6 +9,14 @@ const register = async (req, res) => {
     return res.status(400).json({ message: 'Felhasználónév és jelszó megadása kötelező!' });
   }
 
+  if (username.length < 3 || username.length > 20) {
+    return res.status(400).json({ message: 'A felhasználónév hossza 3-20 karakter között kell legyen!' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ message: 'A jelszó hossza legalább 6 karakter kell legyen!' });
+  }
+
   try {
     const existingUser = await Auth.findOne({ where: { username } });
     if (existingUser) {

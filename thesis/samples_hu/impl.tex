@@ -1,0 +1,322 @@
+\chapter{Fejlesztői dokumentáció}
+\label{ch:dev_doc}
+
+Ebben a fejezetben az alkalmazás technikai megvalósításának részleteit mutatom be.
+
+\section{Implementációt megelőző rendszertervek}
+\label{sec:pre_impl_design}
+
+Ez a szakasz azokat az előzetes terveket tartalmazza, amelyek a kódolás megkezdése előtt készültek, és referenciaként szolgáltak a fejlesztés során.
+
+\subsection{Használatieset-diagram (Use-case diagram)}
+
+Ez a diagram a fejlesztés megkezdése előtt rögzített funkcionális elvárásokat és a felhasználói szerepkörök interakcióit szemlélteti.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{use_case_pre}
+    \caption{Előzetes használatieset-diagram}
+    \label{fig:pre_use_case}
+    \centering{\footnotesize Az ábra a draw.io \cite{drawio} alkalmazás segítségével készült.}
+\end{figure}
+
+A használatieset-diagram (Use-case diagram) funkcionális leírását az alábbi táblázat egészíti ki:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ | m{0.28\textwidth} | m{0.32\textwidth} | m{0.30\textwidth} | }
+    \hline
+    \textbf{Given (Adott)} & \textbf{When (Amikor)} & \textbf{Then (Akkor)} \\
+    \hline \hline
+    Vendégként tartózkodom a regisztrációs oldalon. & Kitöltöm a szükséges adatokat (felhasználónév, érvényes e-mail cím, jelszó) és rákattintok a „Regisztráció” gombra. & A Rendszer létrehozza a fiókomat. \\
+    \hline
+    Vendégként tartózkodom a bejelentkezési oldalon. & Megadom a regisztrált felhasználónevemet és jelszavamat, és rákattintok a „Belépés” gombra. & A Rendszer hitelesíti az adataimat, és sikeresen a főmenübe irányít. \\
+    \hline
+    Játékosként be vagyok jelentkezve, és a főmenüben vagyok. & Rákattintok a játék keresése gombra. & A Rendszer létrehoz egy szobát és keres nekem ellenfelet. \\
+    \hline
+    Játékosként egy játékban vagyok, és én vagyok soron. & A kezemben lévő kártyák közül érvényesen kijátszok egyet. & A Rendszer elfogadja a lépést, a kijátszott kártya megjelenik az asztalon, és a sor a következő játékosra száll. \\
+    \hline
+    Játékosként van egy királyom és egy felsőm azonos színből és én vagyok soron. & Egy gombot kattintva kijátszom a 20/40-et és kiválasztom a királyt vagy a felsőt. & A Rendszer elfogadja a lépést, hozzárendeli a pontokat és megjeleníti a lapot az asztalon. \\
+    \hline
+    Két játékos kijátszotta a kártyáját az adott körben. & A Rendszer kiértékeli a két kijátszott kártyát a snapszer szabályai szerint. & A Rendszer megállapítja a kör nyertesét, kiosztja a pontokat, és frissíti a kijelzőt. \\
+    \hline
+    Véget ér egy kör. & A kört nyert játékosnak összegyűlik a 66 pont. & A rendszer kihirdeti a játékost, aki nyerte a partit. \\
+    \hline
+    Játékosként egy játékteremben tartózkodom, de még nem fejeződött be a parti. & Rákattintok a „Játék elhagyása” gombra. & A Rendszer eltávolít a játékteremből és átirányít a főmenübe. \\
+    \hline
+    Játékosként bejelentkezve a főmenüben tartózkodom. & Rákattintok a statisztikák gombra. & Megjelenik egy oldal, amin az eddig elért partikból láthatóak a statisztikák. \\
+    \hline
+  \end{tabular}
+  \caption{A rendszer használati eseteinek részletezése}
+  \label{tab:use-case-scenarios}
+  \centering{\footnotesize A táblázat a Microsoft Word \cite{msword} alkalmazás segítségével készült.}
+\end{table}
+
+\subsection{A felhasználói felület tervei (Figma)}
+
+A vizuális tervezési szakaszban készült drótváztervek az alkalmazás ergonómiáját és a tervezett komponensek elrendezését rögzítették. Az összes drótváz ábrát a Figma \cite{figma} grafikai tervező szoftver segítségével készítettem el.
+
+\vspace{1em}
+\noindent\textbf{Bejelentkezés nélküli főoldal}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{bejelentkezes_nelkuli_figma}
+    \caption{Bejelentkezés nélküli főoldal drótváz ábrája}
+    \label{nologinfigma}
+    \vspace{0.5em}
+\end{figure}
+
+\vspace{1em}
+\noindent\textbf{Bejelentkezett főoldal}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{bejelentkezett_menu_figma}
+    \caption{Bejelentkezett főoldal drótváz ábrája}
+    \label{loggedinfigma}
+    \vspace{0.5em}
+\end{figure}
+
+\vspace{6em}
+\noindent\textbf{Bejelentkezés oldal}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{bejelentkezes_figma}
+    \caption{Bejelentkezés oldal drótváz ábrája}
+    \label{loginpage}
+    \vspace{0.5em}
+\end{figure}
+
+\vspace{1em}
+\noindent\textbf{Regisztráció oldal}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{regisztracio_figma}
+    \caption{Regisztráció oldal drótváz ábrája}
+    \label{registerpage}
+    \vspace{0.5em}
+\end{figure}
+
+\vspace{20em}
+\noindent\textbf{Játék oldal}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{jatekfelulet}
+    \caption{Játékoldal drótváz ábrája, amikor az ellenfél van soron}
+    \label{gamepage_opp_turn}
+    \vspace{0.5em}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{jatekfelulet_mi_jovunk}
+    \caption{Játékoldal drótváz ábrája, amikor mi vagyunk soron}
+    \label{gamepage_our_turn}
+    \vspace{0.5em}
+\end{figure}
+
+\subsection{Komponens diagramok}
+
+\vspace{1em}
+\noindent\textbf{Magas szintű architektúra} \\
+Az első diagram a tervezett felhasználói felületet (Client/Frontend), a kiszolgáló egységet (Backend) és az adatbázist (DB) és a kapcsolatait szemlélteti.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{komponens_diagram_pre}
+    \caption{A rendszer három fő komponensének kapcsolata}
+    \label{pre_comp_1}
+    \vspace{0.5em}
+    \centering{\footnotesize Az ábra a draw.io \cite{drawio} alkalmazás segítségével készült.}
+\end{figure}
+
+\vspace{1em}
+\noindent\textbf{A Backend részletes felépítése} \\
+A második diagram részletes betekintést nyújt a tervezett Backend belső működésébe, elmagyarázva az API vezérlőt és a valós idejű kommunikációért felelős Socket modul feladatait.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{komponens_diagram_backend_pre}
+    \caption{A Backend belső moduláris felépítésének terve}
+    \label{pre_comp_2}
+    \vspace{0.5em}
+    \centering{\footnotesize Az ábra a draw.io \cite{drawio} alkalmazás segítségével készült.}
+\end{figure}
+\subsection{Osztálydiagram (UML)}
+
+Az előzetes osztálydiagram a szoftver belső objektumorientált adatszerkezeteknek a tervét mutatja be.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{uml_pre}
+    \caption{Tervezett osztálydiagram (UML)}
+    \label{fig:pre_uml_class}
+    \centering{\footnotesize Az ábra a draw.io \cite{drawio} alkalmazás segítségével készült.}
+\end{figure}
+
+\subsection{Egyed-kapcsolat diagram (ER diagram)}
+
+Az adatbázis-tervezés során készült ER diagram a tárolni kívánt adatok közötti logikai relációkat és a táblák tervezett sémáját ábrázolja.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{ER_pre}
+    \caption{Az adatbázis előzetes logikai terve (ER diagram)}
+    \label{fig:pre_er_diagram}
+    \vspace{0.5em}
+    \centering{\footnotesize Az ábra a draw.io \cite{drawio} alkalmazás segítségével készült.}
+\end{figure}
+
+\section{A megvalósult rendszerstruktúra}
+\label{sec:actual_implementation}
+
+A fejlesztési folyamat során az előzetes tervek bizonyos pontokon változtak és alkalmazkodtak a technológiai kihívásokhoz, valamint a felmerülő új kihívásokhoz. Az alábbi diagramok a szoftver végleges, implementált állapotát tükrözik.
+
+\subsection{Végleges osztálydiagram (UML)}
+
+A megvalósult osztálydiagram bemutatja a tényleges az üzleti logikát kiszolgáló osztályokat, a köztük lévő tényleges kapcsolatokat. A diagram a végleges kódbázis alapján készült.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{UML}
+    \caption{A rendszer megvalósult osztálydiagramja}
+    \centering{\footnotesize Az ábra a PlantUML \cite{plantuml} eszköz segítségével készült.}
+    \label{fig:actual_uml}
+\end{figure}
+
+Az osztálydiagramon szereplő komponensek a felelősségi körök egyértelmű szétválasztásának elve alapján lettek kialakítva. A rendszer főbb osztályai és azok funkciói a következők:
+
+\subsection{Osztályok}
+
+\begin{itemize}
+    \item \textbf{Card:} Az osztályok közül a legkisebb, amely egyetlen kártyalapot reprezentál. Tárolja a kártya színét, típusát és a játékban betöltött pontértékét . Képes meghatározni önmagáról, hogy az aktuális aduszín ismeretében ő maga adunak minősül-e.
+    
+    \item \textbf{Deck:} A kártyapakli állapotának és műveleteinek kezeléséért felelős osztály. Feladata a snapszer szabályainak megfelelő 20 lapos csomag generálása, megkeverése, valamint a kártyahúzás (drawCard) és a pakli ürülésének (isEmpty) logikai biztosítása. A keveréshez a Knuth keverési algoritmust alkalmaztam.
+    
+    \begin{algorithm}[H]
+    \caption{Fisher--Yates (Knuth) keverés algoritmus}
+    \label{alg:fisher_yates}
+    \begin{algorithmic}[1]
+    \Function{Shuffle}{$A$ tömb}
+        \State $n \gets \text{hossz}(A)$
+        \For{$i \gets n - 1 \text{ downto } 1$}
+            \State $j \gets \text{véletlen egész szám } 0 \text{ és } i \text{ között (inkluzív)}$
+            \State Cseréljük meg az $A[i]$ és $A[j]$ elemeket
+        \EndFor
+    \EndFunction
+    \end{algorithmic}
+    \end{algorithm}
+    
+    \item \textbf{Player:} Egy adott mérkőzésben résztvevő kliens szerveroldali reprezentációja. Nyilvántartja a játékos kezében lévő lapokat, a már megnyert (ütött) kártyákat, valamint az aktuális körben és a meccs során szerzett pontokat. Ez az osztály végzi a játékoshoz köthető specifikus ellenőrzéseket is, például a 20-as és 40-es mondások (announcements) felismerését és validálását.
+    
+    \item \textbf{Engine:} A játékszerver központi magja, amely a teljes üzleti logikát és a klasszikus Snapszer játékszabályokat implementálja. Független a hálózati rétegtől, kizárólag a játék menetéért felel. Feladata a körök elindítása és lezárása, az ütés- és színkényszer szigorú betartatása (isValidMove), a kártyalapok erősségének összehasonlítása, a pakli takarása (close), valamint a pontszámítás és a győzelmi feltételek ellenőrzése.
+    
+    \item \textbf{Room:} A hálózati kommunikáció és a játékmotor (Engine) közötti híd szerepét tölti be. Minden elindult mérkőzéshez létrejön egy szobapéldány, amely a Socket.IO eseményeket kezeli. Fogadja a kliensek lépéseit (kártyarakás, aducsere), továbbítja azokat validálásra a játékmotornak, majd a frissített játékállapotot (broadcastState) elküldi minden játékeseménynél a két kliensnek.
+\end{itemize}
+
+\subsection{Végleges adatbázis-séma (ER diagram)}
+
+Az alkalmazás adatperzisztenciáját biztosító adatbázis végleges szerkezete az alábbi egyed-kapcsolat diagramon (ER diagram) látható. Az ábra szemlélteti a létrehozott táblákat, a tárolt adattípusokat, az elsődleges és idegen kulcsokat, valamint a köztük lévő relációkat.
+
+\begin{figure}[H]
+    \centering
+    \fbox{\includegraphics[width=1\textwidth]{ER}}
+    \caption{A megvalósult adatbázis szerkezete (ER diagram)}
+    \label{fig:actual_er}
+    \vspace{0.5em}
+    \centering{\footnotesize Az ábra a draw.io \cite{drawio} alkalmazás segítségével készült, a DBeaver \cite{dbeaver} által generált DDL utasítások felhasználásával.}
+\end{figure}
+
+\subsection{Az adatbázis táblái}
+
+Az ER diagramon ábrázolt adatbázistáblák a relációs adatábrázolás és a felelősségi körök szétválasztásának elveit követve kerültek kialakításra. A rendszer entitásai a következők:
+
+
+\begin{itemize}
+    \item \textbf{auth:} A hitelesítési adatok és a felhasználói fiókok biztonságos tárolásáért felelős tábla. Tartalmazza a rekord egyedi azonosítóját (id), az egyedi (UNIQUE kényszerrel védett) felhasználónevet (username) és a bejelentkezéshez szükséges jelszót (password). Kizárólag az autentikációs folyamatok során van szerepe.
+    
+    \item \textbf{player:} A játékosok publikus profiladatait tartalmazó tábla. Minden bejegyzése pontosan egy hitelesítési fiókhoz kapcsolódik az \texttt{auth\_id} idegen kulcson keresztül (1:1 kapcsolat). A profil létrehozásának idején (created\_at) felül redundánsan tartalmazza a felhasználónevet is.
+    
+    \item \textbf{stats:} Az egyes játékosokhoz tartozó globális és összesített statisztikákat nyilvántartó entitás. A player\_id idegen kulcs segítségével rendelődik hozzá a megfelelő profilhoz. Célja a teljesítménykövetés: tárolja az eddig lejátszott mérkőzések számát (total\_games), a megszerzett győzelmeket (total\_wins) és az összesített meccspontokat (total\_points).
+    
+    \item \textbf{history:} A korábban lejátszott mérkőzések történetét és eredményeit rögzítő tábla, amely egy-a-többhöz (1:N) kapcsolatban áll a \texttt{player} táblával. Minden lezárt mérkőzés után új rekord jön létre benne, amely megőrzi a mérkőzés időpontját (match\_date), az aktuális ellenfél nevét (opponent\_name), a meccs végkimenetelét (match\_status), valamint az elért végeredményt (final\_score).
+\end{itemize}
+
+\subsection{A szerveroldali belépési pont (server.js)}
+\label{subsec:server_js}
+
+A \texttt{server.js} fájl az alkalmazás backend központi belépési pontja. Ez az állomány felelős a webszerver elindításáért, a kliens és a szerver közötti hálózati kapcsolatok felépítéséért, valamint a játék logikáját és az adatbázist összekötő hídrendszer működtetéséért. A modul a Node.js környezetben fut, és több kulcsfontosságú technológiát (Express.js \cite{expressjs}, Socket.IO \cite{socketio}, Sequelize \cite{sequelize}) integrál egyetlen egységes rendszerbe.
+
+A modul legfontosabb felelősségi körei a következők:
+
+\begin{itemize}
+    \item \textbf{Szerver inicializálása és REST API végpontok:} Az Express.js keretrendszer segítségével itt történik a HTTP szerver konfigurálása, a CORS (Cross-Origin Resource Sharing) házirend beállítása, valamint az alapvető REST API végpontok (regisztráció, bejelentkezés, statisztikák lekérése) útvonalválasztóinak (routing) bekötése. Továbbá ez a rész felelős a lefordított kliensoldali fájlok (statikus frontend) kiszolgálásáért is.
+    
+    \item \textbf{Hitelesítés és jogosultságkezelés:} A játékosok csatlakozásakor a szerver JSON Web Token (JWT) segítségével azonosítja a regisztrált felhasználókat. Vendég (nem bejelentkezett) játékosok esetén ellenőrzi, hogy a választott név nem ütközik-e már létező fiókkal, illetve nem játszik-e éppen valaki ugyanazzal a névvel a szerveren, ezzel elkerülve a névütközéseket.
+    
+    \item \textbf{Várólista (Matchmaking) és szobakezelés:} A szerver egy memóriában tárolt várólistán (queue) tartja nyilván a meccskereső játékosokat. Amint legalább két játékos összegyűlik, a rendszer automatikusan párosítja őket, létrehoz egy egyedi azonosítóval ellátott szobát (egy \texttt{Room} példányt), és mindkét klienst ebbe a zárt Socket.IO csatornába irányítja át.
+    
+    \item \textbf{Valós idejű eseménykezelés (WebSockets):} A folyamatban lévő mérkőzések során a szerver folyamatosan hallgatja a kliensektől érkező eseményeket (például kártyarakás: \texttt{playerMove}, aducsere: \texttt{switchTrumpCard}, takarás: \texttt{close}), és azokat feldolgozásra a megfelelő szobapéldány játékmotorjának (\texttt{Engine}) továbbítja.
+    
+    \item \textbf{Kapcsolatszakadás és adatperzisztencia:} A rendszer robusztusan kezeli a váratlan hálózati megszakadásokat (\texttt{disconnect} esemény). Ha egy játékos kilépés vagy internetes hiba miatt elhagyja a folyamatban lévő meccset, a szerver a bent maradt játékost hirdeti ki győztesnek. A mérkőzések végeztével a \texttt{server.js} a Sequelize ORM segítségével aszinkron módon elmenti a meccs eredményét a \texttt{History} táblába, frissíti a résztvevők összesített statisztikáit a \texttt{Stats} táblában, végül pedig felszabadítja a lezárt szoba által lefoglalt memóriát.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Alkalmazott szoftverkönyvtárak és függőségek}
+\label{subsec:dependencies}
+
+A projekt fejlesztése során a \texttt{package.json} fájlban meghatározott, célirányosan kiválasztott külső könyvtárak (függőségek) kerültek felhasználásra. A beépülő al-könyvtárak (tranzitív függőségek) mellőzésével a rendszer legfőbb építőelemei és azok felelősségi körei a következők:
+
+\begin{itemize}
+    \item \textbf{Express (\texttt{express} v5.2.1):} A Node.js legelterjedtebb minimalista webes keretrendszere, amely a REST API végpontok kialakításáért, a HTTP kérések (útvonalválasztás és middleware-ek) kezeléséért, valamint a statikus frontend fájlok kiszolgálásáért felel \cite{expressjs}.
+    
+    \item \textbf{Socket.IO (\texttt{socket.io} v4.8.3):} A valós idejű, kétirányú hálózati kommunikációt (WebSockets alapokon) biztosító keretrendszer, amely a folyamatos és gyors adatcserét, ezáltal a tényleges játékmenet szinkronizálását végzi a kliensek és a szerver között \cite{socketio}.
+    
+    \item \textbf{Sequelize (\texttt{sequelize} v6.37.8):} Egy fejlett, ígéret-alapú (promise-based) ORM (Object-Relational Mapper) eszköz, amely az adatbázis-műveleteket absztrakt, objektumorientált módon kezeli, kiváltva a nyers SQL lekérdezések manuális írását \cite{sequelize}.
+    
+    \item \textbf{PostgreSQL csomagok (\texttt{pg} v8.20.0, \texttt{pg-hstore} v2.3.4):} A Sequelize ORM számára elengedhetetlen natív adatbázis-meghajtók, amelyek a Node.js és a PostgreSQL adatbázis-szerver közötti alacsony szintű kommunikációt valósítják meg \cite{node-postgres}.  
+    
+    \item \textbf{JSON Web Token (\texttt{jsonwebtoken} v9.0.3):} A token alapú, állapotmentes (stateless) felhasználói hitelesítést (autentikációt) és jogosultságkezelést biztosító könyvtár, amely titkosított formában tárolja a munkamenet adatait \cite{jsonwebtoken}.
+    
+    \item \textbf{Bcrypt.js (\texttt{bcryptjs} v3.0.3):} A felhasználói jelszavak biztonságos, egyirányú titkosításáért (hashing) felelős modul, amellyel garantálható, hogy az adatbázis kompromittálódása esetén sem nyerhetőek ki a jelszavak nyílt szövegként \cite{bcryptjs}.
+    
+    \item \textbf{CORS (\texttt{cors} v2.8.6):} Biztonsági köztesréteg (middleware) az Express-hez, amely a Cross-Origin Resource Sharing házirend konfigurálásával engedélyezi az eltérő tartományokból érkező böngészős kéréseket \cite{cors-pkg}.
+    
+    \item \textbf{Dotenv (\texttt{dotenv} v17.2.3):} A környezeti változók (például adatbázis-kapcsolati azonosítók, titkosító kulcsok, szerver portok) egy elkülönített \texttt{.env} fájlból történő, biztonságos betöltéséért felel \cite{dotenv}.
+    
+    \item \textbf{Tailwind CSS (\texttt{tailwindcss} v4.1.18, \texttt{@tailwindcss/vite}):} A kliensoldali grafikus felület (UI) atomi osztályokon alapuló, reszponzív formázását végző CSS keretrendszer és annak build-eszköz (Vite) integrációja \cite{tailwindcss}.
+    
+    \item \textbf{Nodemon (\texttt{nodemon} v3.1.14):} Fejlesztési célú segédeszköz (devDependency), amely a forráskód mentésekor automatikusan újraindítja a Node.js háttérszervert, ezzel jelentősen gyorsítva az iterációs folyamatot \cite{nodemon}.
+\end{itemize}
+
+
+\section{Élesítési környezet és infrastruktúra}
+\label{sec:deployment}
+
+A weboldal teljes egésze modern, felhőalapú infrastruktúrán fut, így mind a \url{https://snapszer.com} oldalt kiszolgáló szerver, mind a háttérben futó adatbázis a Microsoft Azure \cite{azure} környezetében kapott helyet.
+
+Az adattárolásért egy különálló, bérelt PostgreSQL adatbázis-szerver (Azure Database for PostgreSQL) felel, amely a regisztrációkat, a játékosok pontszámait és a mérkőzések részletes történetét rögzíti. Azzal, hogy a weboldal és az adatbázis is a Microsoft felhőszolgáltatását használja, a rendszer rendkívül stabil és gyors maradhat.
+
+A felhőalapú működésnek köszönhetően a játékszerver minden erőforrását a mérkőzések zökkenőmentes lebonyolítására tudja fordítani. Emellett a Microsoft Azure biztosítja a folyamatos elérhetőséget, a rendszer könnyű bővíthetőségét. A biztonságot tovább fokozza az Azure beépített hálózati tűzfala, a DDoS-támadások elleni automatikus védelmi rendszere, valamint az adatforgalom kötelező alapú titkosítása (TLS/SSL), amelyek együttesen proaktív módon védik az alkalmazást a külső kiberfenyegetésekkel szemben.
