@@ -3,6 +3,11 @@ const path = require('path');
 
 const logFilePath = path.join(__dirname, '..', 'logs', 'searches.log');
 
+const logDir = path.dirname(logFilePath);
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+
 exports.logMatchSearch = (name, isSuccess, errorMessage = '') => {
   const timestamp = new Date().toLocaleString('hu-HU', { timeZone: 'Europe/Budapest' });
   
