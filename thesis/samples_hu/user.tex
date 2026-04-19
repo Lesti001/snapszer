@@ -1,0 +1,404 @@
+\chapter{Felhasználói dokumentáció}
+\label{ch:user}
+
+\section{Követelmények}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{ | m{0.25\textwidth} | m{0.65\textwidth} | }
+		\hline
+		\textbf{} & \textbf{Követelmény} \\
+		\hline \hline
+		\emph{Eszköz} & Személyi számítógép vagy laptop \\
+		\hline
+		\emph{Hálozati elérhetőség} &  Folyamatos stabil internetkapcsolat \\
+		\hline
+		\emph{Kijelző méret} & Minimum 13" \\
+		\hline
+		\emph{Böngésző} & Modern webböngésző (pl. Chrome vagy Safari) \\
+		\hline
+
+	\end{tabular}
+	\caption{A program hardver és szoftver követelményei}
+	\label{tab:example-1}
+\end{table}
+
+\section{Rövid weboldalleírás}
+
+A webalkalmazás kezdőképernyője letisztult navigációt biztosít, ahol a játékszabályok egy dedikált aloldalon részletesen áttanulmányozhatók. A rendszer többféle hozzáférési szintet kínál: a felhasználók választhatják a regisztrációhoz kötött bejelentkezést, de lehetőség van bejelentkezés nélküli, vendégként történő játékra is. A bejelentkezési felületről a még fiókkal nem rendelkező látogatók könnyedén átnavigálhatnak a regisztrációs űrlapra. A sikeresen bejelentkezett felhasználók számára a főoldalon elérhetővé válik egy extra funkció, amely a személyes statisztikák megtekintésére szolgál.
+
+\subsection {A játékmenet az alábbi folyamat mentén zajlik:}
+
+\begin{itemize}
+    \item \textbf{Meccskeresés:} A mérkőzés indításához vendégként a név megadása, azonosított profil esetén pedig a bejelentkezés szükséges. A párkeresési folyamat a \textbf{"Játék Keresése"} gomb aktiválásával indul, amint a rendszer megtalálja az ellenfelet, a mérkőzés automatikusan kezdetét veszi.
+    \item \textbf{Játékmechanika:} A grafikus felület vizuálisan kiemeli az éppen aktív (soron lévő) játékost, a lépésjog pedig minden kártyakijátszás követően automatikusan átkerül az ellenfélhez. A kártyák kijátszása intuitív módon, egy egyszerű kattintással történik, melynek hatására a kiválasztott lap a játéktér közepén jelenik meg.
+    \item \textbf{Pontozás és győzelem:} A felhasználói felület valós időben nyomon követi és megjeleníti az aktuális kártyák pontértékeit, valamint az összesített meccspontokat.
+    \item \textbf{Lezárás:} A játék célja a 7 pont elérése. Amint valamelyik fél megszerzi a győzelemhez szükséges pontmennyiséget, a szoftver ezt egyértelműen jelzi a résztvevőknek, majd mindkét játékost automatikusan visszairányítja a főmenübe.
+\end{itemize}
+
+\section{Oldaltérkép és navigáció}
+\label{sec:minimap_navigation}
+
+A webes Snapszer alkalmazás felépítése a letisztult és gyors használhatóság elvét követi. Annak érdekében, hogy a játékosok a lehető leggyorsabban játékba kerüljön, a felületek közötti navigáció egy logikus, jól áttekinthető folyamatra épül. 
+
+A \ref{fig:minimap}. ábra az alkalmazás főbb nézeteit és az azok közötti átmeneteket (felhasználói útvonalat) szemlélteti.
+
+\subsection{Oldaltértkép}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{oldal_terkep}
+	\caption{Oldaltérkép}
+	\label{fig:minimap}
+\end{figure}
+
+Az Oldaltérkép nevű diagram elkészítéséhez a draw.io \cite{drawio} nevű alkalmazást használtam.
+
+\subsection{Navigáció}
+
+A játékélmény szempontjából a navigáció az alábbi főbb állomásokból áll össze:
+
+\begin{itemize}
+    \item \textbf{Főoldal:} Az alkalmazás központi csomópontja.
+    \item \textbf{Szabály oldal:} A játékszabályokat bemutató információs felület.
+    \item \textbf{Bejelentkezés:} A felhasználói hitelesítés helyszíne.
+    \item \textbf{Regisztráció:} Új fiók létrehozására szolgáló űrlap.
+    \item \textbf{Játék oldal:} A tényleges játékmenet asztala.
+    \item \textbf{Statisztika:} A bejelentkezett felhasználók személyes eredményeinek összesítője.
+\end{itemize}
+
+A következőkben az egyes oldalak részletes szerepét és felépítését mutatom be.
+
+\subsubsection{Főoldal}
+A Főoldal az alkalmazás központi csomópontja, ahonnan a rendszer összes többi funkciója közvetlenül vagy közvetve elérhető. Itt található a játék indításához és az ellenfélkereséshez szükséges felület, valamint innen navigálhatunk a szabályzat, illetve a bejelentkezés irányába is. Sikeres azonosítás után a Főoldalról válik elérhetővé a személyes statisztikák megtekintése is.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{fooldal}
+	\caption{Főoldal}
+	\label{fig:homepage}
+\end{figure}
+
+\subsubsection{Szabály oldal}
+Ezen az aloldalon a Snapszer kártyajáték részletes szabályzata olvasható. A Főoldalról közvetlenül elérhető felület célja, hogy a kezdő játékosok elsajátíthassák az alapokat, a tapasztaltabbak pedig felfrissíthessék tudásukat a lapok értékeiről és a speciális bemondásokról (például a húsz és negyven).
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{szabaly}
+	\caption{Szabály oldal}
+	\label{fig:rulepage}
+\end{figure}
+
+\subsubsection{Bejelentkezés}
+A Bejelentkezés oldal szolgál a már regisztrált felhasználók hitelesítésére és profiljuk elérésére. A Főoldalról nyíló nézeten a megfelelő azonosítók (felhasználónév és jelszó) megadásával a játékos beléphet a fiókjába. Ez a felület funkcionál egyben belépési pontként a regisztrációs oldal felé is, a még fiókkal nem rendelkező látogatók számára.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{bejelentkezes}
+	\caption{Bejelentkezés oldal}
+	\label{fig:loginpage}
+\end{figure}
+
+\subsubsection{Regisztráció}
+Ahogy az oldaltérképen is látható, a Regisztráció oldal szorosan kapcsolódik a Bejelentkezéshez, és kizárólag onnan érhető el. Ezen a felületen egy letisztult űrlap kitöltésével a felhasználók létrehozhatják saját fiókjukat, amely lehetővé teszi a későbbi játékeredmények és statisztikák elmentését.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{regisztracio}
+	\caption{Regisztrációs oldal}
+	\label{fig:registerpage}
+\end{figure}
+
+\subsubsection{Játék oldal}
+A Játék oldal a mérkőzések tényleges helyszíne, maga a virtuális kártyaasztal. Ide a játékosok a Főoldalról induló sikeres meccskeresési folyamat után, emberi beavatkozás nélkül, automatikusan kerülnek át. A felületen történik a kártyák interaktív kijátszása, az aktuális pontok valós idejű követése, valamint a győzelmi feltételek teljesülése esetén a játszma lezárása.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{jatek}
+	\caption{Játék oldal}
+	\label{fig:gamepage}
+\end{figure}
+
+\subsubsection{Statisztika}
+A Statisztika egy extra funkciót kínáló felület, amely kizárólag a sikeresen bejelentkezett felhasználók számára válik elérhetővé a Főoldalról. Ezen a nézeten a játékosok nyomon követhetik a korábbi mérkőzéseik eredményeit, a lejátszott játszmák számát, valamint a győzelmek és vereségek arányát, ezáltal folyamatos visszajelzést kapva a saját teljesítményükről.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.85\textwidth]{statisztika}
+	\caption{Statisztika oldal}
+	\label{fig:statpage}
+\end{figure}
+
+\subsection{Grafikai elemek és erőforrások}
+
+A webalkalmazás vizuális megjelenésének egyik legfontosabb eleme a játéktér és maguk a kártyalapok. A fejlesztés során cél volt a klasszikus, jól ismert kártyajáték hangulatának visszaadása a böngészőben is. 
+
+Ehhez a hagyományos magyar kártya digitalizált változatára volt szükség. A mérkőzések során megjelenő, a kártyákat ábrázoló képfájlokat külső forrásból \cite{aduasz} szereztem be, majd azokat integráltam a főoldal (két dísz kép) és a játék oldalba.
+
+\section{A játék indítása}
+
+A Snapszer webes alkalmazás úgy lett kialakítva, hogy a játékosok a lehető leggyorsabban, bonyolult beállítások nélkül játékba kerülhessenek. A játék indítása egy automatikus ellenfélkereső rendszeren keresztül történik.
+
+\subsection{Név megadása}
+
+A felület megnyitása után első lépésként egy tetszőleges becenév (felhasználónév) megadása szükséges, amely a játék során azonosít téged. Regisztráció vagy fiók létrehozása nem kötelező.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{nev_megadasa}
+	\caption{Név megadása}
+	\label{fig:insert_name}
+\end{figure}
+
+\subsection{Játék keresése}
+
+A főmenübe jutva a játék indításához csupán a "Játék indítása" (vagy Keresés) gombra kell kattintanod, miután megadtad a kívánt nevedet.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{jatek_kereses}
+	\caption{Játék keresés elinditása}
+	\label{fig:search}
+\end{figure}
+
+\subsection{Várakozás és kezdés}
+
+Miután megadtunk a nevünket és rákattintottunk a \textbf{"Játék Keresése"} gombra, elindul az ellenfélkeresés, és a képernyőn megjelenik egy visszaszámláló. A rendszer ekkor a háttérben egy másik, szintén várakozó játékossal próbál összepárosítani. Amint a rendszer talál egy szabad ellenfelet, a keresési képernyő eltűnik, és a játék azonnal, automatikusan kezdetét veszi az első kártyák kiosztásával.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{jatek_kereses_indult}
+	\caption{Játék keresés}
+	\label{fig:searching}
+\end{figure}
+
+Játék keresés közben meglehet állítani a keresést az "X" gombbal.
+
+\subsection{Játékkeresés bejelentkezett felhasználóként}
+Amennyiben a játékos rendelkezik regisztrált felhasználói fiókkal és be van jelentkezve, a játék indításának folyamata még gördülékenyebb. 
+
+Ebben az esetben a rendszer automatikusan a profilhoz tartozó nevet használja, így a név megadása lépés teljesen kimarad. A regisztrált nevünk az eddigi megszokott szövegdobozban jelenik meg. A főmenüben elegendő a \textbf{"Játék Keresése"} gombra kattintani, és azonnal kezdetét veszi az ellenfélkeresés.
+
+Fontos különbség a vendég módhoz képest, hogy a bejelentkezett állapotban lejátszott mérkőzések eredményeit (győzelmek, vereségek) a rendszer a háttérben rögzíti. Ezek az adatok elmentésre kerülnek a felhasználó személyes statisztikájába, és lehetőséget biztosítanak a globális ranglistán való szereplésre.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.5\textwidth]{bejelentkezett_kereses}
+	\caption{Bejelentkezett keresés}
+	\label{fig:searching_logged_in}
+\end{figure}
+
+\section{Regisztráció és bejelentkezés}
+\label{sec:auth_user}
+
+A Snapszer webalkalmazás lehetőséget biztosít arra, hogy vendégként, fiók létrehozása nélkül is azonnal asztalhoz ülhess. Azonban a teljes játékélmény és az elért eredményeid megőrzése érdekében érdemes saját felhasználói fiókot regisztrálnod.
+
+\subsection{Fiók létrehozása (Regisztráció)}
+
+A regisztrációs felületet a Főoldalról vagy a Bejelentkezés oldalról tudod elérni. Az űrlap kitöltésekor mindössze egy felhasználónevet és egy jelszót kell megadnod az alábbi szabályok szerint:
+
+\begin{itemize}
+    \item \textbf{Felhasználónév:} A nevednek legalább 3, de legfeljebb 20 karakterből kell állnia. Ez a szabály biztosítja, hogy a játékostársak könnyen azonosítani tudjanak, és a neved tökéletesen, levágás nélkül jelenjen meg a kártyaasztalon.
+    \item \textbf{Jelszó:} A fiókod védelme érdekében a jelszónak minimum 6 karakter hosszúságúnak kell lennie.
+\end{itemize}
+
+\textit{Adatvédelmi megjegyzés: A rendszer a jelszavakat szigorúan titkosítva tárolja. Ez azt jelenti, hogy a tényleges jelszavadhoz senki még az alkalmazás készítője sem férhet hozzá, így a profilod maximális biztonságban van.}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{regisztracio_kicsi}
+    \caption{A regisztrációs űrlap}
+    \label{fig:reg_user}
+\end{figure}
+
+\subsection{Bejelentkezés és annak előnyei}
+
+Már meglévő fiók esetén a Bejelentkezés oldalon tudsz belépni a profilodba a felhasználóneved és jelszavad megadásával. A bejelentkezett állapot a következő kényelmi funkciókat és extra lehetőségeket nyitja meg számodra:
+
+\begin{itemize}
+    \item \textbf{Személyes statisztikák:} Ez a regisztráció legfőbb előnye. A rendszer minden bejelentkezve lejátszott mérkőzésed eredményét elmenti. A Főoldalról elérhető \textit{Statisztika} nézetben bármikor visszanézheted, hány meccset játszottál összesen, ebből mennyit nyertél és vesztettél, így nyomon követheted a saját fejlődésedet.
+    \item \textbf{Gyorsabb játékkeresés:} Bejelentkezés után a rendszer megjegyzi a profilodat. Amikor a "Játék Keresése" gombra kattintasz, már nem kell minden alkalommal újra beírnod a becenevedet; a rendszer automatikusan a fiókod nevét használja, és a keresés azonnal, egyetlen kattintással elindul.
+\end{itemize}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{bejelentkezes_kicsi}
+    \caption{A bejelentkezési felület}
+    \label{fig:login_user}
+\end{figure}
+
+
+\section{Játékmenet}
+\label{sec:jatekmenet}
+
+Ebben a fejezetben a mérkőzések során tapasztalható tényleges játékmenetet és a virtuális kártyaasztal funkcióit mutatom be. Részletesen végigvesszük a kártyák kijátszásának menetét, az aktuális pontok folyamatos megjelenítését, a szabálytalan (illegális) lépések vizuális és szöveges jelzését, valamint az olyan speciális Snapszer-szabályok felületi kezelését, mint a 20 és 40 bemondása, illetve a pakli takarása.
+
+\subsection{Kártyakijátszás és szabályosság vizsgálata}
+
+A játéktéren a saját lapjaink a képernyő alsó részén helyezkednek el. Amikor a mi körünk következik, egy kártya kijátszásához elegendő csupán bal egérgombbal rákattintani a kiválasztott lapra. A rendszer a háttérben minden lépésnél automatikusan ellenőrzi a játék aktuális állását és a Snapszer szabályait.
+
+\vspace{1em}
+\noindent\textbf{Sikeres kártyakijátszás}
+
+Amennyiben a választott lépés szabályos, a kattintás után a kártya azonnal az asztal közepére kerül. Ezt követően a lépésjog automatikusan átkerül az ellenfélhez.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{sikeres_lepes}
+    \caption{Szabályos lépés: a kártya az asztal közepére kerül}
+    \label{fig:valid_move}
+\end{figure}
+
+\vspace{1em}
+\noindent\textbf{Illegális lépés jelzése}
+
+Ha olyan kártyát próbálunk meg lerakni, amely az adott szituációban nem szabályos (mert a pakli elfogyása vagy takarása után megsértjük a színkényszert vagy a felülütési kényszert), a rendszer megakadályozza a lap kijátszását. 
+
+Ilyenkor az oldal egyértelmű vizuális visszajelzést ad: a kiválasztott kártya egy vastag piros keretet kap, és egy rövid, figyelmeztető rezgő animációt játszik le. Ezzel egy időben a képernyő felső részén megjelenik egy felugró ablak (popup), amely szövegesen is tájékoztat a hiba okáról (például figyelmeztet, hogy kötelező az ütés- vagy a színkényszer betartása).
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{illegalis_lepes}
+    \caption{Szabálytalan lépés vizuális jelzése és a felugró hibaüzenet}
+    \label{fig:invalid_move}
+\end{figure}
+
+\subsection{Játékosállapot és pontszámok kijelzése}
+
+A játéktér bal felső és alsó részén folyamatosan látható mindkét játékoshoz (a felhasználóhoz és az ellenfélhez) tartozó információs panel. Ezek a kis ablakok nyújtanak kulcsfontosságú visszajelzést a mérkőzés aktuális állásáról és a játékosok státuszáról.
+
+Ezek a panelek az alábbi információkat jelenítik meg:
+\begin{itemize}
+    \item \textbf{Játékos neve:} Az azonosításhoz használt becenév (felhasználó esetében "Te").
+    \item \textbf{Lépés státusz:} Szöveges jelzés arról, hogy az adott játékos következik-e.
+    \item \textbf{Meccspont:} A mérkőzés megnyeréséhez szükséges összesített pontszám.
+    \item \textbf{Ütéspont:} Az aktuális körben (partiban) a játékos által elvitt kártyák összesített értéke. Cél a 66 pont elérése.
+\end{itemize}
+
+\vspace{1em}
+\noindent\textbf{Példa a lépésjog jelzésére és a vizuális kiemelésre}
+
+A rendszer vizuális visszajelzést ad arról, hogy éppen ki következik. A lépésjog egyértelmű jelzése érdekében az éppen soron lévő játékos információs ablaka kap egy színezett keretet.
+
+Tekintsük a \ref{fig:status_windows}. ábrát példaként egy olyan játékhelyzetre, ahol az ellenfél következik:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{statusz_ellenfel}
+    \hspace{2em}
+    \includegraphics[width=0.3\textwidth]{statusz_sajat}
+    \caption{Információs panelek: (balra) az ellenfél következik, (jobbra) a saját állapotunk várakozás közben}
+    \label{fig:status_windows}
+\end{figure}
+
+Ebben a szituációban az ellenfelünk, "András" következik. Ahogy a bal oldali ábrán látható:
+\begin{itemize}
+    \item Az ő panelje egy vastagabb, színezett keretet kapott.
+    \item A neve alatt megjelenik az "Ő KÖVETKEZIK" szöveges jelzés.
+    \item A panelről leolvasható, hogy 2 meccspontja és 21 ütéspontja van.
+\end{itemize}
+
+A jobb oldali ábra a mi saját állapotunkat (\textbf{"Te"}) mutatja ebben a pillanatban. Mivel nem mi    következünk:
+\begin{itemize}
+    \item A mi panelünk körül nincs kiemelő keret.
+    \item Nincs szöveges jelzés a név alatt.
+    \item Látható, hogy jelenleg 0 meccspontunk és 14 ütéspontunk van.
+\end{itemize}
+
+Amint András lerakja a kártyáját, a kiemelés azonnal eltűnik az ő ablakáról, és a keret meg fog jelenni a mi panelünk körül, jelezve, hogy ránk szállt a lépésjog.
+
+\subsection{Saját ütések megtekintése}
+
+A Snapszer kártyajátékban a stratégia egyik kulcseleme a már kijátszott lapok és a saját ütések ismerete. A webalkalmazás egy interaktív felületi elemmel segíti a játékost abban, hogy bármikor gyorsan ellenőrizhesse a már megszerzett lapjait.
+
+A funkció a játéktér jobb alsó sarkában található. A felület alaphelyzetben helytakarékossági okokból csak egy lefordított kártyapaklit mutat, a részletes lista pedig kizárólag interakcióra jelenik meg:
+
+\begin{itemize}
+    \item \textbf{Dinamikus megjelenítés:} Az "ÜTÉSEID" feliratú információs ablak csak akkor válik láthatóvá, amikor a felhasználó a kurzort a pakli fölé viszi.
+    \item \textbf{Vizuális tartalom:} Ebben a felugró panelben megjelenik az összes olyan kártya, amelyet a játékos az adott körben eddig megszerzett. Ez segíti hátralévő lapok kikövetkeztetését.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{utesek_hover}
+    \caption{Az ütések részletes megjelenítése az egérkurzor rávitelére}
+    \label{fig:tricks_hover}
+\end{figure}
+
+\section{Speciális lépések és stratégiai lehetőségek}
+\label{sec:special_moves}
+
+A Snapszer kártyajáték izgalmát és taktikai mélységét a hagyományos ütéseken túlmutató speciális lépések adják. A webalkalmazás ezeket a lehetőségeket intuitív módon és vizuális segítséggel támogatja.
+
+\subsection{Húsz és negyven bemondása}
+
+A játék során extra pontokat szerezhetünk, ha azonos színű Király és Felső párral rendelkezünk. A szoftver ezt a folyamatot teljesen automatizálta:
+
+\begin{itemize}
+    \item \textbf{Aktiválás:} Amint a játékos kijátssza a nála lévő páros egyik tagját (Királyt vagy Felsőt), és a kezében van a pár másik fele, a rendszer ezt azonnal felismeri.
+    \item \textbf{Vizuális visszajelzés:} A bemondás tényét egy középen felül megjelenő felugró ablak jelzi, amely mutatja a szerzett pontértéket (aduszín esetén 40, egyébként 20 pont).
+    \item \textbf{Pontozás:} A pontok automatikusan hozzáadódnak a játékos ütéspontjaihoz, és a pontszámkijelző azonnal frissül.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{bemondas_popup}
+    \caption{A 20/40 bemondást jelző felugró ablak}
+    \label{fig:announcement}
+\end{figure}
+
+\subsection{Aducsere}
+
+Ha a játékosnál van az aduszín legalacsonyabb lapja (az Alsó), lehetősége van azt kicserélni az asztal közepén felütött adukártyára.
+
+\begin{itemize}
+    \item \textbf{Szabályos csere:} Az aducserére csak akkor van lehetőség, ha nálunk van az adu alsó, és éppen mi következünk (lépésjogunk van). A végrehajtáshoz egyszerűen rá kell kattintani az asztalon fekvő, félig a pakli alatt lévő adukártyára. Ekkor a két lap helyet cserél.
+    
+    \item \textbf{Szabálytalan csere jelzése:} Amennyiben a játékos akkor kísérel meg adut cserélni, amikor a feltételek nem teljesülnek (például nincs a kezében az adu alsó). A rendszer hibaüzenettel akadályozza meg a műveletet. 
+    
+    Ilyenkor az asztalon fekvő adukártya egy vastag piros keretet kap, és egy rövid, figyelmeztető rezgő animációt játszik le. Ez a vizuális visszajelzés egyértelműen jelzi a felhasználónak, hogy a csere az adott pillanatban nem hajtható végre.
+\end{itemize}
+
+\subsection{Takarás (A pakli lezárása)}
+
+A takarás a legkockázatosabb, de egyben a legtöbb pontot hozó stratégiai elem. Ezzel jelezzük, hogy a kezünkben lévő lapokból további húzás nélkül is képesek vagyunk megnyerni a kört.
+
+\begin{itemize}
+    \item \textbf{Elérhetőség:} A "Takarás" gomb csak akkor jelenik meg a felületen, ha mi vagyunk soron, és még legalább 3 lefordított lap található a talonban (a húzópakliban).
+    \item \textbf{Hatás:} A gombra kattintva a pakli "lezárul". Ezután nincs több lapfelvétel, és a játékosoknak azonnal tartaniuk kell a szín és ütéskényszert.
+    \item \textbf{Elhelyezkedés:} A gomb a felhasználó saját állapotjelző kisablaka (státusz panel) mellett jelenik meg.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{takaras}
+    \caption{A Takarás gomb megjelenése a játéktéren}
+    \label{fig:close_deck}
+\end{figure}
+
+\vspace{1em}
+\noindent\textbf{A takarás vizuális visszajelzései}
+
+Miután a játékos a gombra kattintva lezárja a paklit, a rendszer két egyértelmű vizuális jelzéssel tudatja a résztvevőkkel, hogy a játékmenet megváltozott, és érvénybe lépett a szín és ütéskényszer.
+
+\begin{itemize}
+    \item \textbf{A talon lezárása:} A takarás pillanatában a korábban felütött adukártya  rákerül a talon (húzópakli) tetejére.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.3\textwidth]{takaras_vizualis_deck}
+      \caption{A talon lezárása: az adukártya a pakli tetejére kerül}
+      \label{fig:deck_closed_visual}
+    \end{figure}
+    \item \textbf{Megerősítő ablak:} A művelet végrehajtásakor a képernyő közepén felül egy rövid ideig látható felugró ablak is megjelenik, amely szövegesen is jelzi a takarás tényét mindkét játékos számára.
+\end{itemize}
+
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.3\textwidth]{takaras_popup}
+    \caption{A takarást megerősítő felugró ablak}
+    \label{fig:close_popup}
+\end{figure}

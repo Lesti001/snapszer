@@ -56,16 +56,23 @@ const LoginPage = () => {
       <div className="absolute bottom-20 right-20 w-80 h-80 bg-[#D39696]/10 rounded-full blur-3xl"></div>
 
       <div className="bg-white/80 backdrop-blur-md border border-[#D39696]/20 rounded-3xl shadow-2xl w-full max-w-md p-8 z-10">
-        <h1 className="text-3xl font-black text-gray-800 mb-2 text-center">Bejelentkezés!</h1>
-        <p className="text-gray-500 text-center mb-8">Add meg a neved és a jelszavad a folytatáshoz!</p>
+        <h1 className="text-3xl font-black text-gray-800 mb-2 text-center">Bejelentkezés</h1>
+        <p className="text-gray-500 text-center mb-6">Add meg a neved és a jelszavad a folytatáshoz</p>
 
-        {successMessage && (
+        {successMessage && !error && (
           <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-3 mb-5 rounded-r-lg text-sm font-medium">
             {successMessage}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-5">
+        {error && (
+          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-5 rounded-r-lg text-sm font-medium">
+            {error}
+          </div>
+        )}
+
+        {/* Egységesítve a space-y-4 a Regisztrációval */}
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Név</label>
             <input
@@ -92,7 +99,7 @@ const LoginPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-[#D39696] hover:bg-[#c28585] text-white font-bold text-lg py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 mt-4"
+            className="w-full bg-[#D39696] hover:bg-[#c28585] text-white font-bold text-lg py-3.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 mt-6"
           >
             Bejelentkezés
           </button>

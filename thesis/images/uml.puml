@@ -1,0 +1,86 @@
+@startuml UML
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+skinparam linetype ortho
+
+class Card {
+  +suit: String
+  +type: String
+  +value: Number
+  +isTrump(trumpSuit: String): Boolean
+}
+
+class Deck {
+  +cards: Card[]
+  +generate(): void
+  +shuffle(): void
+  +drawCard(): Card
+  +isEmpty(): Boolean
+}
+
+class Player {
+  +name: String
+  +socketId: String
+  +roundPoints: Number
+  +gamePoints: Number
+  +hand: Card[]
+  +wonCards: Card[]
+  +drawCard(card: Card): void
+  +resetRoundPoints(): void
+  +addRoundPoints(i: Number): void
+  +clearHand(): void
+  +clearWonCards(): void
+  +addCardsToWonCards(cards: Card[]): void
+  +removeCard(index: Number): Card
+  +getAnnouncements(trumpSuit: String): Object[]
+  +playAnnouncement(cardToPlay: Card, trumpSuit: String): Object
+  +hasSuit(suit: String): Boolean
+  +hasTrump(trumpSuit: String): Boolean
+  +hasStrongerCard(suit: String, valueToBeat: Number): Boolean
+}
+
+class Engine {
+  +player1: Player
+  +player2: Player
+  +deck: Deck
+  +trumpSuit: String
+  +closedData: Object
+  +trumpCard: Card
+  +boardCard: Card
+  +secondBoardCard: Card
+  +activePlayer: Player
+  +lastRoundStartingPlayer: Player
+  +io: Object
+  +startRound(): void
+  +switchTrumpCard(player: Player): Object
+  +handleFirstMove(player: Player, cardIndex: Number, card: Card): Object
+  +handleSecondMove(player: Player, cardIndex: Number): Object
+  +handleMove(player: Player, card: Card): Object
+  +evaluateTrick(player: Player, cards: Card[]): void
+  +drawAfterTrick(winner: Player, loser: Player): void
+  +evaluateStrongerCard(ledCard: Card, followedCard: Card): Card
+  +isValidMove(player: Player, cardToPlay: Card, ledCard: Card): Boolean
+  +checkWinCondition(winner: Player, loser: Player): Object
+  +close(player: Player): void
+  +calculateMatchPoints(winner: Player, loser: Player, isLastTrickWin: Boolean): Number
+  +endRound(winner: Player, loser: Player, isLastTrickWin: Boolean): Object
+}
+
+class Room {
+  +roomId: String
+  +io: Object
+  +onGameEnd: Function
+  +engine: Engine
+  +startGame(): void
+  +handleSwitchTrumpCard(socketId: String): void
+  +handleMove(socketId: String, cardData: Object): void
+  +endMatch(winner: Player): void
+  +broadcastState(): void
+}
+
+Room *-down- Engine
+Engine *-down- Deck
+Engine o-right- Player 
+Deck *-right- Card
+Player o-down- Card
+@enduml
