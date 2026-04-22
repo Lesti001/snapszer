@@ -18,7 +18,7 @@ exports.getStats = async (req, res) => {
       limit: 10
     });
 
-    res.json({ stats, history });
+    res.status(200).json({ stats, history });
   } catch (error) {
     console.error('Hiba a statisztika lekérésekor:', error);
     res.status(403).json({ message: 'Érvénytelen vagy lejárt token!' });
