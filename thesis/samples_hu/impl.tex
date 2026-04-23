@@ -218,20 +218,33 @@ A valós idejű hálózati kommunikációt a \texttt{socket.js}-ben inicializál
 
 A JWT tokenek a böngésző \texttt{localStorage} tárolójába kerülnek, így magas szintű biztonságot és konzisztens felhasználói élményt garantál a munkamenet-kezelés. Szinkronban maradnak a megnyitott böngészőlapok, mivel a fő \texttt{App} komponens egy globális eseményfigyelővel monitorozza a tárhely változásait, így egy esetleges kijelentkezés azonnal és automatikusan érvényesül a felhasználó összes nyitott ablakában. A megjelenés reszponzív és modern az összes nézeten, erre a Tailwind CSS \cite{tailwindcss} keretrendszert alkalmaztam, amit közvetlenül a JSX struktúrába integráltam.
 
-\subsection{Fizikai komponens-telepítési diagram}
+\subsection{Fizikai komponens-telepítési diagram és infrastruktúra}
 \label{subsec:deployment_diagram}
 
-Jól áttekinthető képet nyújt az infrastruktúráról a fizikai telepítési diagram, amely megmutatja a Microsoft Azure felhőszolgáltatásokba kihelyezett szoftverkomponensek topológiáját.
+Jól áttekinthető képet nyújt az alkalmazás architekturális felépítéséről a fizikai telepítési diagram. Az ábra megmutatja a Microsoft Azure felhőszolgáltatásokba kihelyezett szoftverkomponensek és a hálózati rétegek topológiáját.
 
 \begin{figure}[H]
     \centering
-    % TODODODODDOIde jöhet majd a PlantUML által generált telepítési diagram hivatkozása
-    % \includegraphics[width=0.9\textwidth]{deployment_diagram}
+    \includegraphics[width=0.99\textwidth]{telepitesi}
     \caption{A rendszer fizikai telepítési diagramja (Deployment Diagram)}
     \label{fig:deployment_diagram}
 \end{figure}
 
- Az alkalmazás könnyen skálázható, mivel a frontend statikus fájljait és a Node.js API szervert egy hosztolt App Service környezet szolgálja ki, a perzisztens adattárolásért pedig egy tőle fizikailag független, de azonos virtuális hálózaton elhelyezkedő Azure Database for PostgreSQL szerver felel.
+A weboldal publikus elérése a Cloudflare \cite{cloudflare} rendszerén keresztül valósul meg. A \url{https://snapszer.com} domain forgalmát ez a szolgáltató kezeli, és irányítja tovább a felhasználói kéréseket az Azure-ban hosztolt végpontok felé. A Cloudflare beépített hálózati tűzfala és automatikus DDoS-védelme proaktívan szűri a kártékony forgalmat, garantálva a rendszer biztonságát a külső kibertámadásokkal szemben.
+
+A tényleges futtatókörnyezet teljes egészében a Microsoft Azure \cite{azure} felhőalapú ökoszisztémájára épül. Ez a modern, Platform as a Service (PaaS) megközelítés tehermentesíti a fejlesztőt a fizikai infrastruktúra fenntartásától. A frontend statikus lefordított fájljait, a REST API végpontokat és a valós idejű Socket.IO játékszervert egyetlen közös, egyszerűen skálázható Azure App Service környezet szolgálja ki.
+
+Az alkalmazás perzisztens adattárolásáért egy különálló, menedzselt Azure Database for PostgreSQL szerver felel. Ez az adatbázis rögzíti a felhasználói regisztrációkat, a profilok pontszámait és a mérkőzések részletes történetét. A kiszolgáló fizikailag független az App Service-től, de azonos virtuális hálózaton helyezkedik el, a belső adatbáziskommunikáció így gyors és zárt marad.
+
+A komponensek közötti együttműködés és a hálózati adatáramlás  jól szemléltethető egy konkrét játékesemény (például egy kártyalap kijátszásának) levezetésével:
+
+\begin{enumerate}
+    \item \textbf{Kliens interakció:} A játékos a böngészőben (React frontend) rákattint a megjátszani kívánt kártyára. A kliensoldali alkalmazás összeállít egy szabványos JSON adatcsomagot a lépés részleteivel.
+    \item \textbf{Hálózati továbbítás:} A böngésző egy titkosított, valós idejű WebSocket (WSS) csatornán keresztül elküldi a csomagot. A kérés beérkezik a Cloudflare hálózatába, amely szűri a forgalmat, majd továbbítja azt a felhőbe.
+    \item \textbf{Szerveroldali feldolgozás:} Az Azure App Service környezetben futó Node.js szerveren a Socket.IO kliens fogadja a kérést. Az adatokat átadja az aktív mérkőzést kezelő játékmotornak, amely validálja a lépést a snapszer szabályai szerint.
+    \item \textbf{Állapotszinkronizáció:} Érvényes lépés esetén a játékmotor módosítja a szerver memóriájában tárolt belső állapotot. A szerver ezután a \texttt{broadcastState} metódussal visszaküldi az új, frissített játékállapotot mindkét résztvevőnek.
+    \item \textbf{Adatbázis tranzakció (opcionális):} Amennyiben a kijátszott kártyalap eldönti a teljes mérkőzést, a Node.js szerver egy biztonságos TCP kapcsolaton keresztül bejegyzi a végeredményt a PostgreSQL adatbázisba, véglegesítve a játékosok statisztikáit.
+\end{enumerate}
 
 \section{A megvalósult rendszerstruktúra}
 \label{sec:actual_implementation}
@@ -281,7 +294,7 @@ Az osztálydiagramon szereplő komponensek a felelősségi körök egyértelmű 
     \item \textbf{Room:} A hálózati kommunikáció és a játékmotor (Engine) közötti híd szerepét tölti be. Minden elindult mérkőzéshez létrejön egy szobapéldány, amely a Socket.IO eseményeket kezeli. Fogadja a kliensek lépéseit (kártyarakás, aducsere), továbbítja azokat validálásra a játékmotornak, majd a frissített játékállapotot (broadcastState) elküldi minden játékeseménynél a két kliensnek.
 \end{itemize}
 
-\subsection{Végleges adatbázis-séma (ER diagram)}
+\subsection{Végleges adatbázis séma (ER diagram)}
 
 Az alkalmazás adatperzisztenciáját biztosító adatbázis végleges szerkezete az alábbi egyed-kapcsolat diagramon (ER diagram) látható. Az ábra szemlélteti a létrehozott táblákat, a tárolt adattípusokat, az elsődleges és idegen kulcsokat, valamint a köztük lévő relációkat.
 
@@ -416,7 +429,7 @@ Kommunikációs hidat képeznek a REST API végpontok a frontend és a backend a
         \hline
         \textbf{Metódus} & \textbf{Végpont (Endpoint)} & \textbf{Funkció és leírás} \\
         \hline
-        \texttt{POST} & \texttt{/api/auth/register} & Új felhasználói fiókot hoz létre az adatbázisban. Ellenőrzi a jelszó és a név minimális és maximális hosszát, majd sikeres validáció után egy adatbázis-tranzakció keretében szinkronban rögzíti az \texttt{Auth} és \texttt{Player} modelleket. \\
+        \texttt{POST} & \texttt{/api/auth/register} & Új felhasználói fiókot hoz létre az adatbázisban. Ellenőrzi a jelszó és a név minimális és maximális hosszát, majd sikeres validáció után egy adatbázis tranzakció keretében szinkronban rögzíti az \texttt{Auth} és \texttt{Player} modelleket. \\
         \hline
         \texttt{POST} & \texttt{/api/auth/login} & Hitelesíti a kliens által beküldött belépési adatokat. A \texttt{bcrypt} algoritmussal összehasonlítja a titkosított jelszavakat, majd sikeres belépés esetén egy 30 napig érvényes, aláírt JWT tokennel tér vissza. \\
         \hline
@@ -439,13 +452,13 @@ A naplózó modul főbb jellemzői és szoftvertervezési megoldásai a követke
     
     \item \textbf{Strukturált adatrögzítés:} Az exportált \texttt{logMatchSearch} függvény egy egységes, könnyen olvasható formátumban rögzíti az eseményeket. Minden bejegyzés tartalmazza a művelet pontos, lokalizált időbélyegét, a játékos nevét, valamint a csatlakozási kísérlet státuszát.
     
-    \item \textbf{Hibakövetés:} A modul megkülönbözteti a sikeres és sikertelen meccskeresési eseményeket. Hibás kísérletek esetén (például érvénytelen JWT token, foglalt név, vagy hibás adatbázis-kapcsolat) a naplósor kiegészül a hiba pontos okával is, ami elengedhetetlen a későbbi rendszerüzemeltetési feladatokhoz.
+    \item \textbf{Hibakövetés:} A modul megkülönbözteti a sikeres és sikertelen meccskeresési eseményeket. Hibás kísérletek esetén (például érvénytelen JWT token, foglalt név, vagy hibás adatbázis kapcsolat) a naplósor kiegészül a hiba pontos okával is, ami elengedhetetlen a későbbi rendszerüzemeltetési feladatokhoz.
 \end{itemize}
 
 \subsection{Alkalmazott szoftverkönyvtárak és függőségek}
 \label{subsec:dependencies}
 
-A projekt fejlesztése során a \texttt{package.json} fájlban meghatározott, célirányosan kiválasztott külső könyvtárak (függőségek) kerültek felhasználásra. A beépülő al-könyvtárak (tranzitív függőségek) mellőzésével a rendszer legfőbb építőelemei és azok felelősségi körei a következők:
+A projekt fejlesztése során a \texttt{package.json} fájlban meghatározott, célirányosan kiválasztott külső könyvtárak (függőségek) kerültek felhasználásra. A beépülő alkönyvtárak (tranzitív függőségek) mellőzésével a rendszer legfőbb építőelemei és azok felelősségi körei a következők:
 
 \begin{itemize}
     \item \textbf{Express (\texttt{express} v5.2.1):} A Node.js legelterjedtebb minimalista webes keretrendszere, amely a REST API végpontok kialakításáért, a HTTP kérések (útvonalválasztás és middleware-ek) kezeléséért, valamint a statikus frontend fájlok kiszolgálásáért felel \cite{expressjs}.
@@ -469,17 +482,6 @@ A projekt fejlesztése során a \texttt{package.json} fájlban meghatározott, c
     \item \textbf{Nodemon (\texttt{nodemon} v3.1.14):} Fejlesztési célú segédeszköz (devDependency), amely a forráskód mentésekor automatikusan újraindítja a Node.js háttérszervert, ezzel jelentősen gyorsítva az iterációs folyamatot \cite{nodemon}.
 \end{itemize}
 
-
-\section{Élesítési környezet és infrastruktúra}
-\label{sec:deployment}
-
-A weboldal teljes egésze modern, felhőalapú infrastruktúrán fut, így mind a \url{https://snapszer.com} oldalt kiszolgáló szerver, mind a háttérben futó adatbázis a Microsoft Azure \cite{azure} környezetében kapott helyet.
-
-Az adattárolásért egy különálló, bérelt PostgreSQL adatbázis-szerver (Azure Database for PostgreSQL) felel, amely a regisztrációkat, a játékosok pontszámait és a mérkőzések részletes történetét rögzíti. Azzal, hogy a weboldal és az adatbázis is a Microsoft felhőszolgáltatását használja, a rendszer rendkívül stabil és gyors maradhat.
-
-A felhőalapú működésnek köszönhetően a játékszerver minden erőforrását a mérkőzések zökkenőmentes lebonyolítására tudja fordítani. Emellett a Microsoft Azure biztosítja a folyamatos elérhetőséget, a rendszer könnyű bővíthetőségét. A biztonságot tovább fokozza az Azure beépített hálózati tűzfala, a DDoS-támadások elleni automatikus védelmi rendszere, valamint az adatforgalom kötelező alapú titkosítása (TLS/SSL), amelyek együttesen proaktív módon védik az alkalmazást a külső kiberfenyegetésekkel szemben.
-
-
 \section{Rendszertesztelés és a megvalósult használati esetek}
 \label{sec:testing_use_cases}
 
@@ -491,7 +493,7 @@ Az alábbi táblázat az alkalmazás legfontosabb használati eseteit (Use Case)
 
 \begin{longtable}{| c | m{3cm} | c | m{6cm} | c |}
     \caption{A rendszer használati eseteinek részletezése és teszteredményei}
-    \label{tab:use-case-scenarios} \\
+    \label{tab:use-case-scenarios-real} \\
     
     \hline
     \textbf{\#} & \textbf{Eset} & \multicolumn{2}{c|}{\textbf{Leírás}} & \textbf{Eredmény} \\
@@ -502,7 +504,7 @@ Az alábbi táblázat az alkalmazás legfontosabb használati eseteit (Use Case)
     \textbf{\#} & \textbf{Eset} & \multicolumn{2}{c|}{\textbf{Leírás}} & \textbf{Eredmény} \\
     \hline
     \endhead
-    
+
     \hline
     \endlastfoot
 
@@ -510,8 +512,6 @@ Az alábbi táblázat az alkalmazás legfontosabb használati eseteit (Use Case)
     & GIVEN & Vendégként tartózkodom a regisztrációs oldalon. & \cellcolor{green!40} \\* \cline{3-4}
     & & WHEN & Kitöltöm a szükséges adatokat (felhasználónév, jelszó) és rákattintok a „Regisztráció” gombra. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
     & & THEN & A rendszer létrehozza a fiókomat az adatbázisban. & \cellcolor{green!40} \\ \hline
-
-    \newpage
 
     \multirow{3}{*}{2.} & \multirow{3}{3cm}{Sikeres bejelentkezés} 
     & GIVEN & Vendégként tartózkodom a bejelentkezési oldalon. & \cellcolor{green!40} \\* \cline{3-4}
