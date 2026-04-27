@@ -318,7 +318,6 @@ const GamePage = () => {
             </div>
           )
         ) : (
-          /* VALÓSÁGHŰ TAKARÁS (Adu kártyával takarva) */
           <div className="relative w-full h-full">
             {[...Array(3)].map((_, i) => (
               <img

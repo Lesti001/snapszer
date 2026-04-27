@@ -482,6 +482,51 @@ A projekt fejlesztése során a \texttt{package.json} fájlban meghatározott, c
     \item \textbf{Nodemon (\texttt{nodemon} v3.1.14):} Fejlesztési célú segédeszköz (devDependency), amely a forráskód mentésekor automatikusan újraindítja a Node.js háttérszervert, ezzel jelentősen gyorsítva az iterációs folyamatot \cite{nodemon}.
 \end{itemize}
 
+\section{Fejlesztői környezet kialakítása és futtatás helyi környezetben}
+\label{sec:local_setup}
+
+A projekt lokális környezetben történő futtatása és a továbbfejlesztés megkezdése előtt elengedhetetlen a megfelelő szoftveres infrastruktúra kialakítása. Ez a fejezet lépésről lépésre bemutatja a szükséges előfeltételeket, valamint a szerveroldali (backend) és a kliensoldali (frontend) komponensek elindításának folyamatát.
+
+\subsection{Előfeltételek}
+\label{subsec:prerequisites}
+
+Az alkalmazás futtatásához a fejlesztői gépen az alábbi szoftverek és eszközök megléte elengedhetetlen:
+\begin{itemize}
+    \item \textbf{Node.js:} A JavaScript futtatókörnyezet, amely magában foglalja az NPM (Node Package Manager) csomagkezelőt is. Az aszinkron funkciók és a felhasznált könyvtárak miatt legalább a 18-as vagy újabb verzió ajánlott \cite{nodejs}.
+    \item \textbf{PostgreSQL:} Egy lokálisan futó, vagy egy virtuális (pl. Docker konténeres) környezetben elérhető relációs adatbázis-szerver, amely a felhasználói adatok és a statisztikák tárolásáért felel.
+\end{itemize}
+
+\subsection{A Backend környezet beállítása}
+\label{subsec:backend_setup}
+
+A szerveroldali alkalmazás beüzemelése a projekt \texttt{backend} mappájában történik. A folyamat az alábbi lépésekből áll:
+\begin{enumerate}
+    \item \textbf{Függőségek telepítése:} A parancssorban kiadott \texttt{npm install} parancs letölti és telepíti a \texttt{package.json} fájlban definiált összes szükséges szoftverkönyvtárat (pl. Express, Socket.IO, Sequelize).
+    \item \textbf{Környezeti változók konfigurálása:} A gyökérkönyvtárban létre kell hozni egy \texttt{.env} fájlt, amely tartalmazza az alábbiakat:
+    \begin{itemize}
+        \item \texttt{db\_username=snapszeradmin}: Az adatbázis adminisztrátori azonosítója.
+        \item \texttt{db\_pass=<ADATBAZIS\_JELSZO>}: A hozzáféréshez szükséges biztonsági jelszó helyőrzője.
+        \item \texttt{PORT=3000}: Az alkalmazásszerver futtatási portja.
+        \item \texttt{DATABASE\_URL=postgres://snapszeradmin:}\allowbreak\texttt{<ADATBAZIS\_JELSZO>@snapszer-db.postgres.}\allowbreak\texttt{database.azure.com:5432/postgres?}\allowbreak\texttt{sslmode=verify-full}: A teljes PostgreSQL kapcsolati karakterlánc az SSL titkosítás kényszerítésével.
+        \item \texttt{JWT\_SECRET=<EGYEDI\_TITKOS\_KULCS>}: A munkamenetek hitelesítésére szolgáló egyedi kriptográfiai kulcs (pl. b88d4292... kezdetű hash).
+    \end{itemize}
+
+    Értelemszerűen a fenti listában szereplő paraméterek a saját Azure-adatbázisom eléréséhez lettek konfigurálva. Az alkalmazás más környezetben történő telepítésekor ezeket az értékeket a saját adatbázis-szolgáltató által biztosított adatokkal kell helyettesíteni.
+
+    \item \textbf{Szerver indítása:} Az \texttt{npm run dev} parancs futtatásával a Nodemon segédprogram elindítja a háttérszolgáltatást. Sikeres indulás esetén a konzolon megjelenik a figyelési port száma, valamint az adatbázishoz való sikeres csatlakozás ténye.
+\end{enumerate}
+
+\subsection{A Frontend környezet beállítása}
+\label{subsec:frontend_setup}
+
+A kliensoldali felület a modern, és optimalizált Vite build-eszközre épül \cite{vitejs}. Ennek indítása a \texttt{frontend} könyvtárból történik a következő módon:
+\begin{enumerate}
+    \item \textbf{Függőségek telepítése:} Hasonlóan a backendhez, az \texttt{npm install} parancs futtatásával telepíthetők a React, a Tailwind CSS és egyéb kliensoldali függőségek.
+    \item \textbf{Fejlesztői szerver indítása:} Az \texttt{npm run dev} parancs kiadásával a Vite elindítja a lokális fejlesztői szervert. A rendszer azonnali frissítést (Hot Module Replacement) biztosít, így a kódmódosítások azonnal, oldalfrissítés nélkül megjelennek a böngészőben.
+\end{enumerate}
+
+Külön kiemelendő a frontend hálózati kommunikációjának környezetfüggetlen kialakítása. A valós idejű kapcsolatot biztosító Socket.IO kliens inicializálása során a rendszer nem fixen beégetett IP címet használ a szerver azonosítására, hanem a böngésző beépített \texttt{window.location.origin} tulajdonságára támaszkodik.
+
 \section{Rendszertesztelés és a megvalósult használati esetek}
 \label{sec:testing_use_cases}
 
@@ -598,6 +643,159 @@ Az alábbi táblázat az alkalmazás legfontosabb használati eseteit (Use Case)
     & & WHEN & Rákattintok az "X" gombra a játék keresésnél. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
     & & THEN & A játék keresése megszakad és újra megjelenik a játék keresése gomb. & \cellcolor{green!40} \\ \hline
 
+\end{longtable}
+
+\subsection{Egység tesztek}
+\label{subsec:unit_tests}
+
+A rendszer üzleti logikájának hibamentes működését egységtesztek biztosítják. A szerveroldali teszteléshez a népszerű Jest \cite{jest} keretrendszert használtam, amely beépített asszertációkkal és mockolási (függőség szimulálás) lehetőségekkel támogatja a hatékony tesztelést. 
+
+Az architektúra objektumorientált felépítéséből adódóan minden központi osztály saját, dedikált tesztfájlt kapott. Ezek az esetek teljesen elszigetelten vizsgálják a metódusok működését, az extrém szituációs bemeneteket (edge cases), valamint a játékszabályok (például szín és ütéskényszer) maradéktalan érvényesülését. 
+
+A \ref{fig:unit_test_results}. ábra a tesztkészlet futtatásának végeredményét szemlélteti a fejlesztői környezet termináljában, megerősítve, hogy az összes teszteset hibátlanul (zöld státusszal) lefutott.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{test.png}
+    \caption{Az egységtesztek sikeres lefutása a parancssorban}
+    \label{fig:unit_test_results}
+\end{figure}
+
+Az ábra igazolja, hogy a Jest mindössze 0,437 másodperc alatt hibátlanul lefuttatta mind az 5 tesztkészletet és az abban foglalt összesen 44 egységtesztet.
+
+Az alábbi táblázatok osztályonként (tesztfájlonként) részletezik a vizsgált eseteket és azok lefutási eredményeit.
+% --- CARD TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{A Card.test.js tesztesetei}
+    \label{tab:test_card} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & A \texttt{constructor} segítségével történő példányosítás helyességének ellenőrzése a megadott szín, típus és pontértékek alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & Az \texttt{isTrump()} metódus által végzett adulap-felismerés validálása a megadott aktuális aduszín alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+% --- DECK TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{A Deck.test.js tesztesetei}
+    \label{tab:test_deck} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & Annak ellenőrzése, hogy a \texttt{constructor} hívása után az \texttt{isEmpty()} metódus valóban üres paklit jelez-e. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & A \texttt{generate()} metódus által létrehozott kártyák pontos számának (20 darab) és típusának ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    3. & A \texttt{drawCard()} hívásakor bekövetkező kártyahúzás és a pakli méretcsökkenésének validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    4. & Az \texttt{isEmpty()} metódus helyes logikai visszatérési értékének vizsgálata a pakli teljes kiürülése után. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    5. & A \texttt{shuffle()} metódus futtatása után a pakli méretének (20 lap) változatlanságának ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    6. & A \texttt{shuffle()} algoritmus hatékonyságának vizsgálata a legfelső lapok vizsgálata alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+% --- PLAYER TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{A Player.test.js tesztesetei}
+    \label{tab:test_player} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & A \texttt{constructor} által beállított alapértékek (név, socketId, pont) helyességének ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & A \texttt{drawCard()} metódus működésének validálása a kártya játékos kezébe kerülése alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    3. & Az \texttt{addRoundPoints()} és \texttt{resetRoundPoints()} metódusok által végzett pontkezelés és nullázás ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    4. & A \texttt{clearHand()} metódus által végzett teljes kézürítés helyességének vizsgálata. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    5. & A \texttt{clearWonCards()} hívása után a megnyert lapok listájának törlődésének ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    6. & Az \texttt{addCardsToWonCards()} metódus tesztelése pontosan két kártya sikeres hozzáadásával. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    7. & Az \texttt{addCardsToWonCards()} metódus hibaágának ellenőrzése érvénytelen (üres) lista megadásakor. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    8. & A \texttt{removeCard()} metódus által végzett kártyaeltávolítás validálása index alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    9. & A \texttt{getAnnouncements()} metódus tesztelése érvényes 20 pontos bemondás felismerésével normál színből. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    10. & A \texttt{getAnnouncements()} metódus tesztelése érvényes 40 pontos bemondás felismerésével aduszínből. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    11. & A \texttt{getAnnouncements()} validálása üres visszatérési értékre, ha nincs bemondható pár a kézben. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    12. & A \texttt{playAnnouncement()} metódus sikerességének ellenőrzése az érték és a kijátszott kártya visszaadása alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    13. & A \texttt{playAnnouncement()} metódus hibaágának vizsgálata érvénytelen bemondás kísérletekor. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    14. & A \texttt{hasSuit()} metódus által végzett színellenőrzés helyességének validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    15. & A \texttt{hasTrump()} metódus tesztelése az aduszínű kártya meglétének felismerésére. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    16. & A \texttt{hasStrongerCard()} metódus validálása az erősebb lap meglétének felismerésére az ütéskényszerhez. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+% --- ENGINE TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{Az Engine.test.js tesztesetei}
+    \label{tab:test_engine} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & Az \texttt{Engine} \texttt{constructor} általi helyes inicializálásának ellenőrzése a játékosokkal és a socket mockkal. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & A \texttt{startRound()} metódus által végzett lapkiosztás és adubeállítás validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    3. & Az aktív játékos cseréjének ellenőrzése a \texttt{startRound()} metódus ismételt hívásakor. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    4. & A \texttt{switchTrumpCard()} metódus sikerességének vizsgálata érvényes aducsere esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    5. & A \texttt{switchTrumpCard()} metódus elutasításának ellenőrzése, ha a pakli már le van zárva. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    6. & Az \texttt{evaluateStrongerCard()} metódus által végzett kártya-kiértékelés validálása az adu és a laperősség alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    7. & Az \texttt{isValidMove()} metódus tesztelése bármely lap kijátszásának engedélyezésére nyitott paklinál. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    8. & Az \texttt{isValidMove()} által végzett szín- és ütéskényszer ellenőrzés validálása zárt pakli esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    9. & Az \texttt{isValidMove()} által kényszerített aduhasználat ellenőrzése zárt paklinál. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    10. & A \texttt{close()} metódus által rögzített zárási adatok helyességének vizsgálata érvényes takaráskor. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    11. & A \texttt{calculateMatchPoints()} metódus tesztelése a megszokott takarás nélküli győzelmi pontok kiszámítására. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    12. & A \texttt{calculateMatchPoints()} validálása a takaró játékos győzelme esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    13. & A \texttt{calculateMatchPoints()} tesztelése a takaró játékos büntetésének kiszámítására veszteség esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    14. & Az \texttt{endRound()} metódus működésének és a teljes mérkőzés lezárásának (7 pont) ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+% --- ROOM TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{A Room.test.js tesztesetei}
+    \label{tab:test_room} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & A \texttt{Room} \texttt{constructor} általi helyes inicializálásának ellenőrzése a kliens és játékos adatokkal. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & A \texttt{startGame()} metódus által kiváltott motorindítás és hálózati állapotközvetítés validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    3. & A \texttt{handleSwitchTrumpCard()} metódus sikeres lefutásának és a frissített állapot kiküldésének ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    4. & Az érvénytelen aducsere esetén a \texttt{handleSwitchTrumpCard()} által küldött hibaüzenet validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    5. & A \texttt{handleMove()} metódus által kezelt mérkőzésvég ellenőrzése azonnali bemondással történő győzelem esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    6. & A \texttt{broadcastState()} metódus által összeállított és kiküldött teljes játékállapot pontosságának vizsgálata. & \cellcolor{green!40}\textbf{OK} \\ \hline
 \end{longtable}
 
 \subsection{Tesztelés által befolyásolt döntések}
