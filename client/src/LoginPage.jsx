@@ -71,7 +71,6 @@ const LoginPage = () => {
           </div>
         )}
 
-        {/* Egységesítve a space-y-4 a Regisztrációval */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1 ml-1">Név</label>

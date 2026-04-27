@@ -46,9 +46,9 @@ const RulesPage = () => {
           <div className="bg-gray-50 p-8 rounded-3xl border-2 border-gray-200 font-bold text-lg space-y-4">
             <p>A pakli 20 lapból áll (Alsó, Felső, Király, X, Ász). A hetesek, nyolcasok és kilencesek nem játszanak.</p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>Az osztó **3-3 lapot** ad mindenkinek.</li>
-              <li>Egy lapot középre tesznek felütve: ez határozza meg az **ADU** (tromf) színét.</li>
-              <li>Ezután mindenki kap még **2-2 lapot**, így 5 lap van mindenki kezében.</li>
+              <li>Az osztó 3-3 lapot ad mindenkinek.</li>
+              <li>Egy lapot középre tesznek felütve: ez határozza meg az ADU (tromf) színét.</li>
+              <li>Ezután mindenki kap még 2-2 lapot, így 5 lap van mindenki kezében.</li>
               <li>A maradék lapokat (talon) keresztbe teszik a felütött adun.</li>
             </ul>
           </div>
@@ -100,7 +100,7 @@ const RulesPage = () => {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1 bg-gray-100 p-6 rounded-2xl">
                 <h3 className="text-2xl font-black mb-2 uppercase">Adu-csere</h3>
-                <p>Ha nálad van az **adu alsó**, és te jössz hívással, kicserélheted a talon alján fekvő (felütött) nagy adura.</p>
+                <p>Ha nálad van az adu alsó, és te jössz hívással, kicserélheted a talon alján fekvő (felütött) nagy adura.</p>
               </div>
               <div className="flex-1 bg-gray-100 p-6 rounded-2xl">
                 <h3 className="text-2xl font-black mb-2 uppercase">Betakarás</h3>

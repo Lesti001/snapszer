@@ -1,4 +1,23 @@
 \chapter{Összegzés}
 \label{ch:sum}
 
+A szakdolgozat keretein belül sikeresen megtervezésre és implementálásra került egy valós idejű, böngészőből játszható kétszemélyes snapszer alkalmazás. A modern webes technológiák (React/Vite, Node.js, Socket.IO, PostgreSQL) és a felhőalapú architektúra alkalmazásával a szoftver stabil, reszponzív és azonnal használható élményt nyújt a felhasználók számára. Bár a rendszer jelenlegi állapotában is egy teljes értékű, élesített szoftver, a moduláris kialakítás számos lehetőséget biztosít a jövőbeli bővítésekre.
 
+\section{Továbbfejlesztési lehetőségek}
+\label{sec:future_work}
+
+A kliensoldali felület és a szerveroldali üzleti logika (Engine) szigorú szétválasztása kiváló alapot ad ahhoz, hogy az alkalmazás funkcióit a későbbiekben új játékmódokkal gazdagítsuk. A legfőbb továbbfejlesztési irányok a következők:
+
+\subsection{Többjátékos (3 és 4 fős) játékmódok integrálása}
+Bár a snapszer alapvetően kétszemélyes játékként a legismertebb, léteznek rendkívül népszerű három és négyszemélyes változatai is. Ezek megvalósítása a rendszer egy logikus lépése lenne:
+\begin{itemize}
+    \item \textbf{Üzleti logika bővítése:} A szerveroldali \texttt{Engine} osztályt fel kell készíteni kettőnél több \texttt{Player} példány egyidejű kezelésére. Át kell alakítani a köralapú léptetést, valamint integrálni kell a többjátékos verziók egyedi szabályait (például a teljes pakli kiosztását talon nélkül, a hívásokat, vagy a csapattársak pontjainak közös számítását 4 fős mód esetén).
+    \item \textbf{Felhasználói felület adaptációja:} A frontend komponenseket úgy kell áttervezni, hogy az asztalon dinamikusan, vizuálisan is átláthatóan helyezze el az új ellenfeleket (például a képernyő jobb és bal oldalán, illetve a tetején).
+\end{itemize}
+
+\subsection{Egyjátékos mód: Játék "Bot" ellen}
+Annak érdekében, hogy a felhasználók várakozás nélkül, gyakorlás céljából is játszhassanak abban az esetben is, ha épp nincs elérhető emberi ellenfél a várólistán, kiemelten hasznos lenne egy kód által vezérelt gépi ellenfél (Bot) bevezetése:
+\begin{itemize}
+    \item \textbf{Döntéshozatali algoritmusok:} Első lépésben egy egyszerűbb, szabályalapú gép is elegendő lehet, amely pusztán az érvényes lépések közül választ, előtérbe helyezve az ütés és színkényszert. Később ez a logika lecserélhető egy fejlettebb, a tökéletlen információs kártyajátékoknál jól bevált Monte Carlo fa-keresésre (MCTS) vagy Minimax algoritmusra, amely valódi kihívást jelenthet a tapasztalt játékosoknak is.
+    \item \textbf{Szerveroldali szimuláció:} A \texttt{Room} osztály kiegészülhetne egy dedikált "Bot Room" logikával. Amikor a gép következik, a szerver a játékos lépése után egy emberi gondolkodást szimuláló, rövid késleltetéssel (1-2 másodperc) automatikusan kiszámolná, végrehajtaná és közvetítené a bot lépését a kliens felé, így a hálózati kommunikáció menete szinte változatlan maradhatna.
+\end{itemize}

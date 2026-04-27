@@ -3,10 +3,29 @@
 
 Ebben a fejezetben az alkalmazás technikai megvalósításának részleteit mutatom be.
 
+
+\subsection{Célközönség és a szoftver célkitűzései}
+\label{subsec:target_audience}
+
+Az alkalmazás elsődleges célja, hogy modern, digitális alternatívát nyújtson a snapszer kártyajátéknak. Lényegében azoknak készült, akik szeretnének akkor is játszani, amikor nincsenek közvetlenül körülöttük azok a személyek (például családtagok vagy barátok), akikkel hagyományosan, fizikai kártyapaklival szoktak játszani. Az alkalmazás áthidalja a fizikai távolságot, és lehetőséget ad a közös kikapcsolódásra akkor is, ha a felek nincsenek egy helyiségben. A fejlesztés során négy fő célcsoportot határoztam meg, akiknek az alkalmazás funkcionalitását és felületét dedikáltam:
+\begin{itemize}
+    \item \textbf{A klasszikus kártyajátékok kedvelői:} Azok a felhasználók, akik ismerik és szeretik a snapszer szabályait, de a mindennapok során nehézséget okoz számukra fizikai partnert találni a játékhoz. A snapszer.com élesített rendszere nekik biztosít azonnali párosítási lehetőséget a várólista segítségével.
+    
+    \item \textbf{Digitális platformot kereső közösségek:} Az alkalmazás célközönségébe tartoznak azok a baráti körök vagy ismerősök, akik földrajzi távolságtól függetlenül szeretnének egymás ellen játszani. A rendszer regisztrációs és statisztikai modulja lehetővé teszi számukra a hosszú távú versengést és az eredmények visszakövetését.
+    
+    \item \textbf{Alacsony belépési küszöböt igénylő felhasználók:} Mivel az applikáció böngésző alapú és nem igényel telepítést, célközönségnek tekinthetők a kevésbé technikai beállítottságú játékosok is.
+    
+    \item \textbf{A játékot tanulni vágyók (kezdők):} A felület ideális azoknak is, akik most szeretnék megtanulni a snapszer alapjait. Az alkalmazás rendelkezik szabályzat oldallal, amely segít az elméleti tudás elsajátításában, a szoftverbe épített automatizált szabályellenőrzés pedig a gyakorlatban tanítja meg az érvényes lépéseket, megakadályozva a szabálytalan kártyarakást.
+    
+\end{itemize}
+
+A szoftver végső célja egy olyan közösségi tér létrehozása, ahol a hagyományőrzés és a modern technológia találkozik, biztosítva a játék tisztaságát az automatizált szabályellenőrzéssel és az igazságos pontszámítással. 
+
+
 \section{Implementációt megelőző rendszertervek}
 \label{sec:pre_impl_design}
 
-Ez a szakasz azokat az előzetes terveket tartalmazza, amelyek a kódolás megkezdése előtt készültek, és referenciaként szolgáltak a fejlesztés során.
+Ez a szakasz azokat az előzetes terveket tartalmazza, amelyek a kódolás megkezdése előtt készültek, és referenciaként szolgáltak a fejlesztés során. Az ábrák a tervezési fázisból és az szoftver architektúrája fázisból készültek.
 
 \subsection{Használatieset-diagram (Use-case diagram)}
 
@@ -164,12 +183,68 @@ Az adatbázis-tervezés során készült ER diagram a tárolni kívánt adatok k
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{ER_pre}
+    \includegraphics[width=1\textwidth]{ER_pre}
     \caption{Az adatbázis előzetes logikai terve (ER diagram)}
     \label{fig:pre_er_diagram}
     \vspace{0.5em}
     \centering{\footnotesize Az ábra a draw.io \cite{drawio} alkalmazás segítségével készült.}
 \end{figure}
+
+\section{A szoftver belső struktúrája és adatábrázolása}
+\label{sec:internal_structure}
+
+A rendszer stabilitását és teljesítményét nagymértékben meghatározza az alkalmazott szoftverarchitektúra, ezért ebben a szakaszban a backend forráskódjának felépítését mutatom be. A kódolás során a modularitás elve érvényesült, így az egyes komponensek könnyen tesztelhetők, és a jövőbeli továbbfejlesztések alkalmával is akadálymentesen bővíthetők.
+
+\subsection{Moduláris felépítés és kódminőség}
+\label{subsec:modularity}
+
+Jelentősen megnőtt a kód olvashatósága és karbantarthatósága, mivel szigorúan szét lettek választva a logikai rétegek a szerveroldalon. Különálló, objektumorientált osztályokba (például \texttt{Card.js}, \texttt{Deck.js}, \texttt{Player.js}) került a játékmenet alapvető logikája, így ezek a fájlok belső állapottal (encapsulation) rendelkeznek, és teljesen függetlenek a hálózati keretrendszertől. Kimagasló újrafelhasználhatóságot biztosít ez a megközelítés, ugyanis a központi játékmotor (\texttt{Engine.js}) lényegében bármilyen környezetben (akár egy lokális, asztali alkalmazásban is) futtatható lenne kódmódosítás nélkül. Megkönnyítené egy mobilalkalmazás jövőbeli fejlesztését is ez az elszigetelt felépítés, mivel a játékmotor kódja könnyedén újrahasznosítható.
+
+Kifejezetten biztonságos és robusztus a hitelesítési folyamat is, mivel az \texttt{authController.js} aszinkron vezérlőfunkciói felelnek a jelszavak hasheléséért és az adatok validálásáért. Garantált a szerveroldali adatintegritás, hiszen az adatbázisba történő írás során a kód a \texttt{sequelize.transaction} metódust alkalmazza, amely biztosítja, hogy szerverhiba esetén a félig végrehajtott módosítások automatikusan visszavonásra kerüljenek (rollback).
+
+\subsection{Adatábrázolási döntések (Sequelize ORM)}
+\label{subsec:data_representation}
+
+Kizárólag relációs adatbáziskezelőt alkalmaz a rendszer háttértára, amelynek a dinamikus eléréséhez és az adattípusok absztrakt definiálásához a Sequelize ORM szoftverkönyvtárat implementáltam\cite{sequelize}. JavaScript osztályokként modelleztem az entitásokat, hogy a fejlesztés során ne kelljen nyers SQL parancsokat írni, ezáltal védem az alkalmazást az SQL injection támadás ellen.
+
+Hatékonyan valósulnak meg a táblák közötti összeköttetések, mert az \texttt{index.js} fájlban pontosan lettek definiálva a relációk, mint amilyen a \texttt{Player} és a \texttt{History} (mérkőzés-történet) modellek közötti egy-a-többhöz (1:N) kapcsolat is. Soha nem maradnak árva rekordok az adatbázisban a profilok törlése után, mivel a kapcsolatoknál minden esetben be lett állítva az \texttt{ON DELETE CASCADE} szabály, amely a szülő entitás eltávolításakor a kapcsolódó al-adatokat is megsemmisíti. Modern és skálázható megoldásnak számít az elsődleges kulcsok (Primary Key) ábrázolása is, ugyanis a hagyományos inkrementális sorszámozás helyett automatikusan generált, prediktálhatatlan \texttt{UUIDv4} azonosítókat (\texttt{DataTypes.UUID}) kapnak a rekordok az adatbázisban.
+
+\subsection{Kliensoldali architektúra és állapotkezelés}
+\label{subsec:frontend_architecture}
+
+Az alkalmazás a teljes útvonalválasztást a \texttt{React Router} keretrendszerel kezeli az \texttt{App.jsx} fájlban, oldalújratöltések nélkül. A frontend kódja moduláris, hiszen a felhasználói felület önálló, funkcióspecifikus React komponensekre (például \texttt{GamePage}, \texttt{StatsPage}, \texttt{GuestPage}) bomlik. 
+
+A valós idejű hálózati kommunikációt a \texttt{socket.js}-ben inicializált Socket.IO \cite{socketio} kliens végzi, amelynek eseményeit a React beépített \texttt{useEffect} hookjai figyelik. Különösen megbízható a vizuális visszacsatolás a játékmenet során, mert a szabálytalan lépéseket jelző animációkhoz és az értesítésekhez tartozó időzítéseket (timeouts) a \texttt{useRef} hookokkal izoláltan, a memóriában tartva kezeli a rendszer, elkerülve a memóriaszivárgást.
+
+A JWT tokenek a böngésző \texttt{localStorage} tárolójába kerülnek, így magas szintű biztonságot és konzisztens felhasználói élményt garantál a munkamenet-kezelés. Szinkronban maradnak a megnyitott böngészőlapok, mivel a fő \texttt{App} komponens egy globális eseményfigyelővel monitorozza a tárhely változásait, így egy esetleges kijelentkezés azonnal és automatikusan érvényesül a felhasználó összes nyitott ablakában. A megjelenés reszponzív és modern az összes nézeten, erre a Tailwind CSS \cite{tailwindcss} keretrendszert alkalmaztam, amit közvetlenül a JSX struktúrába integráltam.
+
+\subsection{Fizikai komponens-telepítési diagram és infrastruktúra}
+\label{subsec:deployment_diagram}
+
+Jól áttekinthető képet nyújt az alkalmazás architekturális felépítéséről a fizikai telepítési diagram. Az ábra megmutatja a Microsoft Azure felhőszolgáltatásokba kihelyezett szoftverkomponensek és a hálózati rétegek topológiáját.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.99\textwidth]{telepitesi}
+    \caption{A rendszer fizikai telepítési diagramja (Deployment Diagram)}
+    \label{fig:deployment_diagram}
+\end{figure}
+
+A weboldal publikus elérése a Cloudflare \cite{cloudflare} rendszerén keresztül valósul meg. A \url{https://snapszer.com} domain forgalmát ez a szolgáltató kezeli, és irányítja tovább a felhasználói kéréseket az Azure-ban hosztolt végpontok felé. A Cloudflare beépített hálózati tűzfala és automatikus DDoS-védelme proaktívan szűri a kártékony forgalmat, garantálva a rendszer biztonságát a külső kibertámadásokkal szemben.
+
+A tényleges futtatókörnyezet teljes egészében a Microsoft Azure \cite{azure} felhőalapú ökoszisztémájára épül. Ez a modern, Platform as a Service (PaaS) megközelítés tehermentesíti a fejlesztőt a fizikai infrastruktúra fenntartásától. A frontend statikus lefordított fájljait, a REST API végpontokat és a valós idejű Socket.IO játékszervert egyetlen közös, egyszerűen skálázható Azure App Service környezet szolgálja ki.
+
+Az alkalmazás perzisztens adattárolásáért egy különálló, menedzselt Azure Database for PostgreSQL szerver felel. Ez az adatbázis rögzíti a felhasználói regisztrációkat, a profilok pontszámait és a mérkőzések részletes történetét. A kiszolgáló fizikailag független az App Service-től, de azonos virtuális hálózaton helyezkedik el, a belső adatbáziskommunikáció így gyors és zárt marad.
+
+A komponensek közötti együttműködés és a hálózati adatáramlás  jól szemléltethető egy konkrét játékesemény (például egy kártyalap kijátszásának) levezetésével:
+
+\begin{enumerate}
+    \item \textbf{Kliens interakció:} A játékos a böngészőben (React frontend) rákattint a megjátszani kívánt kártyára. A kliensoldali alkalmazás összeállít egy szabványos JSON adatcsomagot a lépés részleteivel.
+    \item \textbf{Hálózati továbbítás:} A böngésző egy titkosított, valós idejű WebSocket (WSS) csatornán keresztül elküldi a csomagot. A kérés beérkezik a Cloudflare hálózatába, amely szűri a forgalmat, majd továbbítja azt a felhőbe.
+    \item \textbf{Szerveroldali feldolgozás:} Az Azure App Service környezetben futó Node.js szerveren a Socket.IO kliens fogadja a kérést. Az adatokat átadja az aktív mérkőzést kezelő játékmotornak, amely validálja a lépést a snapszer szabályai szerint.
+    \item \textbf{Állapotszinkronizáció:} Érvényes lépés esetén a játékmotor módosítja a szerver memóriájában tárolt belső állapotot. A szerver ezután a \texttt{broadcastState} metódussal visszaküldi az új, frissített játékállapotot mindkét résztvevőnek.
+    \item \textbf{Adatbázis tranzakció (opcionális):} Amennyiben a kijátszott kártyalap eldönti a teljes mérkőzést, a Node.js szerver egy biztonságos TCP kapcsolaton keresztül bejegyzi a végeredményt a PostgreSQL adatbázisba, véglegesítve a játékosok statisztikáit.
+\end{enumerate}
 
 \section{A megvalósult rendszerstruktúra}
 \label{sec:actual_implementation}
@@ -210,6 +285,7 @@ Az osztálydiagramon szereplő komponensek a felelősségi körök egyértelmű 
     \EndFunction
     \end{algorithmic}
     \end{algorithm}
+    \centering{\footnotesize Az algoritmus forrása a Wikipédia\cite{fisher_yates_wiki}.}
     
     \item \textbf{Player:} Egy adott mérkőzésben résztvevő kliens szerveroldali reprezentációja. Nyilvántartja a játékos kezében lévő lapokat, a már megnyert (ütött) kártyákat, valamint az aktuális körben és a meccs során szerzett pontokat. Ez az osztály végzi a játékoshoz köthető specifikus ellenőrzéseket is, például a 20-as és 40-es mondások (announcements) felismerését és validálását.
     
@@ -218,7 +294,7 @@ Az osztálydiagramon szereplő komponensek a felelősségi körök egyértelmű 
     \item \textbf{Room:} A hálózati kommunikáció és a játékmotor (Engine) közötti híd szerepét tölti be. Minden elindult mérkőzéshez létrejön egy szobapéldány, amely a Socket.IO eseményeket kezeli. Fogadja a kliensek lépéseit (kártyarakás, aducsere), továbbítja azokat validálásra a játékmotornak, majd a frissített játékállapotot (broadcastState) elküldi minden játékeseménynél a két kliensnek.
 \end{itemize}
 
-\subsection{Végleges adatbázis-séma (ER diagram)}
+\subsection{Végleges adatbázis séma (ER diagram)}
 
 Az alkalmazás adatperzisztenciáját biztosító adatbázis végleges szerkezete az alábbi egyed-kapcsolat diagramon (ER diagram) látható. Az ábra szemlélteti a létrehozott táblákat, a tárolt adattípusokat, az elsődleges és idegen kulcsokat, valamint a köztük lévő relációkat.
 
@@ -246,6 +322,82 @@ Az ER diagramon ábrázolt adatbázistáblák a relációs adatábrázolás és 
     \item \textbf{history:} A korábban lejátszott mérkőzések történetét és eredményeit rögzítő tábla, amely egy-a-többhöz (1:N) kapcsolatban áll a \texttt{player} táblával. Minden lezárt mérkőzés után új rekord jön létre benne, amely megőrzi a mérkőzés időpontját (match\_date), az aktuális ellenfél nevét (opponent\_name), a meccs végkimenetelét (match\_status), valamint az elért végeredményt (final\_score).
 \end{itemize}
 
+\section{Backend architektúra és infrastruktúra}
+
+\subsection{Fontosabb metódusok dokumentációja}
+\label{subsec:method_docs}
+
+A játékmotor belső működésének megértéséhez elengedhetetlen a kulcsfontosságú metódusok pontos definíciója. Az alábbiakban a rendszer legfontosabb ellenőrző logikáját mutatom be.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{| p{0.22\textwidth} | p{0.73\textwidth} |}
+        \hline
+        \multicolumn{2}{|l|}{\textbf{Az \texttt{Engine} osztály \texttt{isValidMove} metódusának megvalósítása:}} \\
+        \hline
+        \textbf{Bemenő adat} & \texttt{player: Player} -- a lépést végrehajtó játékos objektuma; \texttt{cardToPlay: Card} -- a kijátszani kívánt kártyalap; \texttt{ledCard: Card} -- az ellenfél által hívott (már az asztalon lévő) kártyalap \\
+        \hline
+        \textbf{Kimenő adat} & \texttt{boolean} -- \texttt{true}, ha a kártya kijátszása a szabályoknak megfelel; \texttt{false}, ha az adott szituációban a lépés érvénytelen \\
+        \hline
+        \textbf{Tevékenység} & A metódus a snapszer szigorú lépésszabályait érvényesíti. Ha a pakli nem üres és nincs takarva, minden lépést engedélyez. Zárt vagy elfogyott pakli (végjáték) esetén sorrendben ellenőrzi a kötelező érvényű szabályokat: 1. Színkényszer (ha van a hívott színből a kézben, azonos színt kell tenni), 2. Felülütési kényszer (ha van erősebb lap az adott színből, azt kötelező megjátszani), 3. Adukényszer (ha nincs a hívott színből, de van adu a kézben, akkor kötelező adut tenni). Ha a játékos sem azonos színű lappal, sem aduval nem rendelkezik, bármilyen lapot érvényesen eldobhat. \\
+        \hline
+    \end{tabular}
+    \caption{Az \texttt{isValidMove} metódus működésének részletezése a tényleges algoritmus alapján}
+    \label{tab:actual_isvalidmove_spec}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{| p{0.22\textwidth} | p{0.73\textwidth} |}
+        \hline
+        \multicolumn{2}{|l|}{\textbf{Az \texttt{Engine} osztály \texttt{evaluateStrongerCard} metódusának megvalósítása:}} \\
+        \hline
+        \textbf{Bemenő adat} & \texttt{ledCard: Card} -- az ütésben elsőként kijátszott (hívott) kártyalap; \texttt{followedCard: Card} -- a másodikként megjátszott kártyalap \\
+        \hline
+        \textbf{Kimenő adat} & \texttt{Card} -- a két lap közül a játékszabályok értelmében erősebb, azaz az ütést elvivő kártyalap objektuma \\
+        \hline
+        \textbf{Tevékenység} & Meghatározza az ütés nyertesét a két kijátszott lap összehasonlításával. Ha a két kártya azonos színű, a magasabb belső értékű (rangú) lapot adja vissza. Ha a színek eltérnek, de a másodikként megjátszott lap megegyezik az aktuális aduszínnel (\texttt{trumpSuit}), akkor ez az adulap nyeri az ütést. Minden egyéb esetben (vagyis ha a második lap eltérő színű, de nem adu), az elsőként kijátszott lap marad az erősebb. \\
+        \hline
+    \end{tabular}
+    \caption{Az \texttt{evaluateStrongerCard} metódus működésének részletezése a tényleges algoritmus alapján}
+    \label{tab:actual_evaluatestrongercard_spec}
+\end{table}
+
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{| p{0.22\textwidth} | p{0.73\textwidth} |}
+        \hline
+        \multicolumn{2}{|l|}{\textbf{Az \texttt{Engine} osztály \texttt{switchTrumpCard} metódusának megvalósítása:}} \\
+        \hline
+        \textbf{Bemenő adat} & \texttt{player: Player} -- az aducserét kezdeményező játékos objektuma \\
+        \hline
+        \textbf{Kimenő adat} & \texttt{Object} -- egy objektum, amely tartalmaz egy \texttt{success} (boolean) tulajdonságot a művelet sikerességéről, illetve sikertelen kísérlet esetén egy magyarázó \texttt{message} (string) hibaüzenetet is tartalmaz \\
+        \hline
+        \textbf{Tevékenység} & A metódus az aducsere logikáját oldja meg. Először ellenőrzi, hogy a pakli nincs-e lezárva (takarva), mivel a takarás után már nem lehet adut cserélni. Utána ellenőrzi, hogy az adott játékos nem null és ő van-e soron. Ezután tovább ellenőrzi, hogy van-e az adu színnel eláttot alsó a kezében, ha ezek a feltételek igazak akkor visszatér egy objektummal, amiben egy igaz boolean szerepel, ha nem akkor hamis boolean-al eláttot objektummal tér vissza a metódus. \\
+        \hline
+    \end{tabular}
+    \caption{A \texttt{switchTrumpCard} metódus működésének részletezése a tényleges algoritmus alapján}
+    \label{tab:actual_switchtrumpcard_spec}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{| p{0.22\textwidth} | p{0.73\textwidth} |}
+        \hline
+        \multicolumn{2}{|l|}{\textbf{A \texttt{Room} osztály \texttt{broadcastState} metódusának megvalósítása:}} \\
+        \hline
+        \textbf{Bemenő adat} & Nem rendelkezik bemeneti paraméterrel, azonban a \texttt{Room} és az \texttt{Engine} osztályok belső állapotát használja fel az adatok kinyeréséhez. \\
+        \hline
+        \textbf{Kimenő adat} & Klasszikus visszatérési értéke nincs (\texttt{void}), viszont a hálózati kapcsolaton keresztül aszinkron módon egy \texttt{gameStateUpdate} eseményt bocsát ki a kliensek felé. \\
+        \hline
+        \textbf{Tevékenység} & Ez a metódus felel azért, hogy mindkét kliensnek szinkronizált játékfelülete legyen egyidejűleg. A rendszer végigiterál az \texttt{Engine} osztályban tárolt két játékoson, hogy mindenkinek egy perszonalizált adatcsomagot (\texttt{gameState}) generáljon. Biztonságos marad a hálózati kommunikáció, hiszen az összeállított objektumba nem kerülnek be az ellenfél rejtett kártyái, hanem az csak a játékos saját lapjait, a publikus pontszámokat, illetve a játéktér látható elemeit (adulap, pakli mérete) tartalmazza. Minden egyes eseményt követően, ami a játékfelületet befolyásolja, ez a metódus lefut és frissíti a kliensek állapotát. A végrehajtás utolsó lépéseként a generált csomag kiküldésre kerül az adott felhasználó egyedi \texttt{socketId}-jére. \\
+        \hline
+    \end{tabular}
+    \caption{A \texttt{broadcastState} metódus működésének részletezése a tényleges algoritmus alapján}
+    \label{tab:actual_broadcaststate_spec}
+\end{table}
+
 \subsection{A szerveroldali belépési pont (server.js)}
 \label{subsec:server_js}
 
@@ -265,29 +417,48 @@ A modul legfontosabb felelősségi körei a következők:
     \item \textbf{Kapcsolatszakadás és adatperzisztencia:} A rendszer robusztusan kezeli a váratlan hálózati megszakadásokat (\texttt{disconnect} esemény). Ha egy játékos kilépés vagy internetes hiba miatt elhagyja a folyamatban lévő meccset, a szerver a bent maradt játékost hirdeti ki győztesnek. A mérkőzések végeztével a \texttt{server.js} a Sequelize ORM segítségével aszinkron módon elmenti a meccs eredményét a \texttt{History} táblába, frissíti a résztvevők összesített statisztikáit a \texttt{Stats} táblában, végül pedig felszabadítja a lezárt szoba által lefoglalt memóriát.
 \end{itemize}
 
+\subsection{REST API végpontok dokumentációja}
+\label{subsec:api_docs}
+
+Kommunikációs hidat képeznek a REST API végpontok a frontend és a backend adatbázis között. A beérkező kérések feldolgozását és az adatáramlás irányítását a vezérlő (controller) funkciók végzik. JSON Web Token (JWT) \cite{jsonwebtoken} alapú hitelesítés védi a privát végpontokat, így a szenzitív adatokhoz (mint a profil statisztikái) csak és kizárólag a megfelelő jogosultsággal rendelkező felhasználók férhetnek hozzá.
 
 
+\begin{table}[H]
+    \centering
+    \begin{tabular}{| p{0.12\textwidth} | p{0.28\textwidth} | p{0.5\textwidth} |}
+        \hline
+        \textbf{Metódus} & \textbf{Végpont (Endpoint)} & \textbf{Funkció és leírás} \\
+        \hline
+        \texttt{POST} & \texttt{/api/auth/register} & Új felhasználói fiókot hoz létre az adatbázisban. Ellenőrzi a jelszó és a név minimális és maximális hosszát, majd sikeres validáció után egy adatbázis tranzakció keretében szinkronban rögzíti az \texttt{Auth} és \texttt{Player} modelleket. \\
+        \hline
+        \texttt{POST} & \texttt{/api/auth/login} & Hitelesíti a kliens által beküldött belépési adatokat. A \texttt{bcrypt} algoritmussal összehasonlítja a titkosított jelszavakat, majd sikeres belépés esetén egy 30 napig érvényes, aláírt JWT tokennel tér vissza. \\
+        \hline
+        \texttt{GET} & \texttt{/api/stats/getStats} & Lekérdezi egy adott játékos összesített profiladatait. Kizárólag érvényes JWT tokennel hívható, amelyből a szerver visszafejti a felhasználó azonosítóját, majd válaszként szolgáltatja a \texttt{Stats} és a \texttt{History} táblákból a legutóbbi tíz mérkőzés eredményét. \\
+        \hline
+    \end{tabular}
+    \caption{A fontosabb REST API végpontok és vezérlők specifikációja}
+    \label{tab:api_endpoints}
+\end{table}
 
+\subsection{Rendszeresemények naplózása (Logging)}
+\label{subsec:logging}
 
+A szerveroldali működés nyomon követése, az anomáliák kiszűrése és a hibák hatékony diagnosztizálása érdekében az alkalmazás egy egyedi, fájlalapú naplózó (logger) modult alkalmaz. A weboldal ezen komponense a Node.js beépített fájlkezelő (\texttt{fs}) és útvonalválasztó (\texttt{path}) moduljaira épül, így nem igényel harmadik féltől származó, külső függőséget.
 
+A naplózó modul főbb jellemzői és szoftvertervezési megoldásai a következők:
 
-
-
-
-
-
-
-
-
-
-
-
-
+\begin{itemize}
+    \item \textbf{Automatikus könyvtárkezelés:} A modul inicializálásakor ellenőrzi a naplófájlok számára dedikált "logs" könyvtár meglétét az operációs rendszerben. Amennyiben a mappa nem létezik, a script (\texttt{fs.mkdirSync}) automatikusan létrehozza azt, megelőzve az Input/Output hibákat.
+    
+    \item \textbf{Strukturált adatrögzítés:} Az exportált \texttt{logMatchSearch} függvény egy egységes, könnyen olvasható formátumban rögzíti az eseményeket. Minden bejegyzés tartalmazza a művelet pontos, lokalizált időbélyegét, a játékos nevét, valamint a csatlakozási kísérlet státuszát.
+    
+    \item \textbf{Hibakövetés:} A modul megkülönbözteti a sikeres és sikertelen meccskeresési eseményeket. Hibás kísérletek esetén (például érvénytelen JWT token, foglalt név, vagy hibás adatbázis kapcsolat) a naplósor kiegészül a hiba pontos okával is, ami elengedhetetlen a későbbi rendszerüzemeltetési feladatokhoz.
+\end{itemize}
 
 \subsection{Alkalmazott szoftverkönyvtárak és függőségek}
 \label{subsec:dependencies}
 
-A projekt fejlesztése során a \texttt{package.json} fájlban meghatározott, célirányosan kiválasztott külső könyvtárak (függőségek) kerültek felhasználásra. A beépülő al-könyvtárak (tranzitív függőségek) mellőzésével a rendszer legfőbb építőelemei és azok felelősségi körei a következők:
+A projekt fejlesztése során a \texttt{package.json} fájlban meghatározott, célirányosan kiválasztott külső könyvtárak (függőségek) kerültek felhasználásra. A beépülő alkönyvtárak (tranzitív függőségek) mellőzésével a rendszer legfőbb építőelemei és azok felelősségi körei a következők:
 
 \begin{itemize}
     \item \textbf{Express (\texttt{express} v5.2.1):} A Node.js legelterjedtebb minimalista webes keretrendszere, amely a REST API végpontok kialakításáért, a HTTP kérések (útvonalválasztás és middleware-ek) kezeléséért, valamint a statikus frontend fájlok kiszolgálásáért felel \cite{expressjs}.
@@ -311,12 +482,336 @@ A projekt fejlesztése során a \texttt{package.json} fájlban meghatározott, c
     \item \textbf{Nodemon (\texttt{nodemon} v3.1.14):} Fejlesztési célú segédeszköz (devDependency), amely a forráskód mentésekor automatikusan újraindítja a Node.js háttérszervert, ezzel jelentősen gyorsítva az iterációs folyamatot \cite{nodemon}.
 \end{itemize}
 
+\section{Fejlesztői környezet kialakítása és futtatás helyi környezetben}
+\label{sec:local_setup}
 
-\section{Élesítési környezet és infrastruktúra}
-\label{sec:deployment}
+A projekt lokális környezetben történő futtatása és a továbbfejlesztés megkezdése előtt elengedhetetlen a megfelelő szoftveres infrastruktúra kialakítása. Ez a fejezet lépésről lépésre bemutatja a szükséges előfeltételeket, valamint a szerveroldali (backend) és a kliensoldali (frontend) komponensek elindításának folyamatát.
 
-A weboldal teljes egésze modern, felhőalapú infrastruktúrán fut, így mind a \url{https://snapszer.com} oldalt kiszolgáló szerver, mind a háttérben futó adatbázis a Microsoft Azure \cite{azure} környezetében kapott helyet.
+\subsection{Előfeltételek}
+\label{subsec:prerequisites}
 
-Az adattárolásért egy különálló, bérelt PostgreSQL adatbázis-szerver (Azure Database for PostgreSQL) felel, amely a regisztrációkat, a játékosok pontszámait és a mérkőzések részletes történetét rögzíti. Azzal, hogy a weboldal és az adatbázis is a Microsoft felhőszolgáltatását használja, a rendszer rendkívül stabil és gyors maradhat.
+Az alkalmazás futtatásához a fejlesztői gépen az alábbi szoftverek és eszközök megléte elengedhetetlen:
+\begin{itemize}
+    \item \textbf{Node.js:} A JavaScript futtatókörnyezet, amely magában foglalja az NPM (Node Package Manager) csomagkezelőt is. Az aszinkron funkciók és a felhasznált könyvtárak miatt legalább a 18-as vagy újabb verzió ajánlott \cite{nodejs}.
+    \item \textbf{PostgreSQL:} Egy lokálisan futó, vagy egy virtuális (pl. Docker konténeres) környezetben elérhető relációs adatbázis-szerver, amely a felhasználói adatok és a statisztikák tárolásáért felel.
+\end{itemize}
 
-A felhőalapú működésnek köszönhetően a játékszerver minden erőforrását a mérkőzések zökkenőmentes lebonyolítására tudja fordítani. Emellett a Microsoft Azure biztosítja a folyamatos elérhetőséget, a rendszer könnyű bővíthetőségét. A biztonságot tovább fokozza az Azure beépített hálózati tűzfala, a DDoS-támadások elleni automatikus védelmi rendszere, valamint az adatforgalom kötelező alapú titkosítása (TLS/SSL), amelyek együttesen proaktív módon védik az alkalmazást a külső kiberfenyegetésekkel szemben.
+\subsection{A Backend környezet beállítása}
+\label{subsec:backend_setup}
+
+A szerveroldali alkalmazás beüzemelése a projekt \texttt{backend} mappájában történik. A folyamat az alábbi lépésekből áll:
+\begin{enumerate}
+    \item \textbf{Függőségek telepítése:} A parancssorban kiadott \texttt{npm install} parancs letölti és telepíti a \texttt{package.json} fájlban definiált összes szükséges szoftverkönyvtárat (pl. Express, Socket.IO, Sequelize).
+    \item \textbf{Környezeti változók konfigurálása:} A gyökérkönyvtárban létre kell hozni egy \texttt{.env} fájlt, amely tartalmazza az alábbiakat:
+    \begin{itemize}
+        \item \texttt{db\_username=snapszeradmin}: Az adatbázis adminisztrátori azonosítója.
+        \item \texttt{db\_pass=<ADATBAZIS\_JELSZO>}: A hozzáféréshez szükséges biztonsági jelszó helyőrzője.
+        \item \texttt{PORT=3000}: Az alkalmazásszerver futtatási portja.
+        \item \texttt{DATABASE\_URL=postgres://snapszeradmin:}\allowbreak\texttt{<ADATBAZIS\_JELSZO>@snapszer-db.postgres.}\allowbreak\texttt{database.azure.com:5432/postgres?}\allowbreak\texttt{sslmode=verify-full}: A teljes PostgreSQL kapcsolati karakterlánc az SSL titkosítás kényszerítésével.
+        \item \texttt{JWT\_SECRET=<EGYEDI\_TITKOS\_KULCS>}: A munkamenetek hitelesítésére szolgáló egyedi kriptográfiai kulcs (pl. b88d4292... kezdetű hash).
+    \end{itemize}
+
+    Értelemszerűen a fenti listában szereplő paraméterek a saját Azure-adatbázisom eléréséhez lettek konfigurálva. Az alkalmazás más környezetben történő telepítésekor ezeket az értékeket a saját adatbázis-szolgáltató által biztosított adatokkal kell helyettesíteni.
+
+    \item \textbf{Szerver indítása:} Az \texttt{npm run dev} parancs futtatásával a Nodemon segédprogram elindítja a háttérszolgáltatást. Sikeres indulás esetén a konzolon megjelenik a figyelési port száma, valamint az adatbázishoz való sikeres csatlakozás ténye.
+\end{enumerate}
+
+\subsection{A Frontend környezet beállítása}
+\label{subsec:frontend_setup}
+
+A kliensoldali felület a modern, és optimalizált Vite build-eszközre épül \cite{vitejs}. Ennek indítása a \texttt{frontend} könyvtárból történik a következő módon:
+\begin{enumerate}
+    \item \textbf{Függőségek telepítése:} Hasonlóan a backendhez, az \texttt{npm install} parancs futtatásával telepíthetők a React, a Tailwind CSS és egyéb kliensoldali függőségek.
+    \item \textbf{Fejlesztői szerver indítása:} Az \texttt{npm run dev} parancs kiadásával a Vite elindítja a lokális fejlesztői szervert. A rendszer azonnali frissítést (Hot Module Replacement) biztosít, így a kódmódosítások azonnal, oldalfrissítés nélkül megjelennek a böngészőben.
+\end{enumerate}
+
+Külön kiemelendő a frontend hálózati kommunikációjának környezetfüggetlen kialakítása. A valós idejű kapcsolatot biztosító Socket.IO kliens inicializálása során a rendszer nem fixen beégetett IP címet használ a szerver azonosítására, hanem a böngésző beépített \texttt{window.location.origin} tulajdonságára támaszkodik.
+
+\section{Rendszertesztelés és a megvalósult használati esetek}
+\label{sec:testing_use_cases}
+
+A fejlesztési fázis lezárultával a szoftver minőségbiztosítása és az üzleti logika helyességének ellenőrzése következett. Ennek alapját a Behaviour-Driven Development (BDD) módszertan adta, amely a rendszer működését a felhasználói viselkedés felől közelíti meg. 
+
+Az alábbi táblázat az alkalmazás legfontosabb használati eseteit (Use Case) és azok tesztelésének eredményeit mutatja be a szabványos \textit{Given-When-Then} (Adott-Amikor-Akkor) formátumban. A jobb oldali oszlopban található „OK” minősítés igazolja, hogy a végleges implementáció a tesztek során az elvárt viselkedést produkálta, így az aktuális megvalósítás fedi az előzetes terveket.
+
+\vspace{1em}
+
+\begin{longtable}{| c | m{3cm} | c | m{6cm} | c |}
+    \caption{A rendszer használati eseteinek részletezése és teszteredményei}
+    \label{tab:use-case-scenarios-real} \\
+    
+    \hline
+    \textbf{\#} & \textbf{Eset} & \multicolumn{2}{c|}{\textbf{Leírás}} & \textbf{Eredmény} \\
+    \hline
+    \endfirsthead
+    
+    \hline
+    \textbf{\#} & \textbf{Eset} & \multicolumn{2}{c|}{\textbf{Leírás}} & \textbf{Eredmény} \\
+    \hline
+    \endhead
+
+    \hline
+    \endlastfoot
+
+    \multirow{3}{*}{1.} & \multirow{3}{3cm}{Sikeres regisztráció} 
+    & GIVEN & Vendégként tartózkodom a regisztrációs oldalon. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Kitöltöm a szükséges adatokat (felhasználónév, jelszó) és rákattintok a „Regisztráció” gombra. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer létrehozza a fiókomat az adatbázisban. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{2.} & \multirow{3}{3cm}{Sikeres bejelentkezés} 
+    & GIVEN & Vendégként tartózkodom a bejelentkezési oldalon. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Megadom a regisztrált felhasználónevemet és jelszavamat, majd a „Belépés” gombra kattintok. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer hitelesíti az adatokat, generálja a tokent, és a főmenübe irányít. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{3.} & \multirow{3}{3cm}{Játék keresése (Matchmaking)} 
+    & GIVEN & Játékosként be vagyok jelentkezve, és a főmenüben vagyok. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Rákattintok a játék keresése gombra. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer felvesz a várólistára, majd amint van elérhető ellenfél, létrehoz egy közös szobát. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{4.} & \multirow{3}{3cm}{Játék keresése egy foglalt névvel} 
+    & GIVEN & Vendégként vagyok a főmenüben. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Beírom a becenevemet a keresőbe és rákattintok a játék keresése gombra. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer észreveszi, hogy már játszik egy ilyen nevű játékos és jelzni nekem a főmenűben, hogy foglalt a név. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{5.} & \multirow{3}{3cm}{Érvényes kártya kijátszása} 
+    & GIVEN & Játékosként egy mérkőzésben vagyok, és én következem. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & A kezemben lévő kártyák közül az ütéskényszer vagy színkényszer szabályainak megfelelően kijátszok egyet. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer elfogadja a lépést, a lap megjelenik az asztalon, és a sor az ellenfélre száll. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{6.} & \multirow{3}{3cm}{Érvénytelen kártya kijátszása} 
+    & GIVEN & Játékosként egy mérkőzésben vagyok, és én következem. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & A kezemben lévő kártyák közül az ütéskényszer vagy színkényszer szabályainak nem megfelelően kijátszok egyet. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer elutasítja a lépést, a lap egy vastag piros keretet kap és rezeg egy rövid ideig jelezve, hogy a lépésem illegális. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{7.} & \multirow{3}{3cm}{Bemondás (20/40)} 
+    & GIVEN & Hívó félként van egy királyom és egy felsőm azonos színből. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Kijátszom a 20-at vagy 40-et érő páros egyik tagját (királyt vagy felsőt) a gombra kattintva. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer érvényesíti a bemondást, jóváírja a plusz pontokat, és megjeleníti a lapot. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{8.} & \multirow{3}{3cm}{Ütés kiértékelése} 
+    & GIVEN & Mindkét játékos kijátszotta a kártyáját az adott körben. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & A rendszer megvizsgálja a lapokat az aduszín és a laperősség alapján. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer megállapítja az ütés nyertesét, jóváírja a pontokat, és frissíti a klienseket. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{9.} & \multirow{3}{3cm}{Aducsere} 
+    & GIVEN & Játékosként én következem, és a kezemben van az aktuális aduszínhez tartozó alsó kártyalap. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Rákattintok a játéktéren elhelyezett adulapra. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer kicseréli az adulapot a kezemben lévő alsóra, és frissíti a játéktér állapotát mindkét kliensnél. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{10.} & \multirow{3}{3cm}{Helytelen aducsere} 
+    & GIVEN & Játékosként én következem, és a kezemben nincs az aktuális aduszínhez tartozó alsó kártyalap. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Rákattintok a játéktéren elhelyezett adulapra. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer elutasítja az eseményt és az adulap egy vastag piros keretet kap és rezeg egy rövid ideig. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{11.} & \multirow{3}{3cm}{Pakli takarása (Zárás)} 
+    & GIVEN & Játékosként én vagyok soron, és a húzópakliban (talonban) még legalább 3 kártyalap található. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Egy gombnyomással kezdeményezem a pakli takarását. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer lezárja a paklit, vizuálisan jelzi ezt a talonon, és egy felugró ablakban értesíti a résztvevőket. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{12.} & \multirow{3}{3cm}{Kör megnyerése (66 pont)} 
+    & GIVEN & Egy mérkőzés során véget ér egy ütés. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Az ütést elvivő játékos összegyűjtött pontjainak száma eléri a 66-ot. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer lezárja a kört, kihirdeti a nyertest, és kiosztja a megfelelő meccspontokat. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{13.} & \multirow{3}{3cm}{Kör elvesztése (66 pont az ellenfélnek)} 
+    & GIVEN & Egy mérkőzés során véget ér egy ütés. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Az ellenfelem az általa elvitt ütésekkel összegyűjt legalább 66 pontot. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer lezárja a kört, az ellenfelet hirdeti ki a kör nyertesének, és neki oszt meccspontot. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{14.} & \multirow{3}{3cm}{Meccs megnyerése (7 meccspont)} 
+    & GIVEN & Egy aktív mérkőzés során a rendszer kiértékel egy újonnan megnyert kört. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & A frissen megnyert körért kapott pontokkal az én összesített meccspontjaim száma eléri a 7-et. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer lezárja a mérkőzést, kihirdet engem győztesnek, és elmenti az eredményt az adatbázisba. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{15.} & \multirow{3}{3cm}{Meccs elvesztése (7 meccspont az ellenfélnek)} 
+    & GIVEN & Egy aktív mérkőzés során a rendszer kiértékel egy elvesztett kört. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Az ellenfelem megnyeri a kört, és az azért kapott pontokkal az ő meccspontjainak száma eléri a 7-et. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer a mérkőzést lezárja, az ellenfelet hirdeti ki győztesnek, engem pedig a főmenübe irányít. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{16.} & \multirow{3}{3cm}{Játék elhagyása (Disconnect)} 
+    & GIVEN & Egy aktív mérkőzésen veszek részt. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Kilépek az oldalról vagy bezárom a böngészőt. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer érzékeli a kilépést, a bent maradt játékost hirdeti ki győztesnek, és lezárja a szobát. & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{17.} & \multirow{3}{3cm}{Statisztikák megtekintése} 
+    & GIVEN & Játékosként bejelentkezve a főmenüben tartózkodom. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Rákattintok a statisztikák gombra. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A rendszer lekéri és listázza az eddig elért eredményeimet (győzelmek, meccsek száma). & \cellcolor{green!40} \\ \hline
+
+    \multirow{3}{*}{18.} & \multirow{3}{3cm}{Játék keresés megszakítása} 
+    & GIVEN & A főmenüben tartózkodom és a játék keresése zajlik. & \cellcolor{green!40} \\* \cline{3-4}
+    & & WHEN & Rákattintok az "X" gombra a játék keresésnél. & \cellcolor{green!40}\textbf{OK} \\* \cline{3-4}
+    & & THEN & A játék keresése megszakad és újra megjelenik a játék keresése gomb. & \cellcolor{green!40} \\ \hline
+
+\end{longtable}
+
+\subsection{Egység tesztek}
+\label{subsec:unit_tests}
+
+A rendszer üzleti logikájának hibamentes működését egységtesztek biztosítják. A szerveroldali teszteléshez a népszerű Jest \cite{jest} keretrendszert használtam, amely beépített asszertációkkal és mockolási (függőség szimulálás) lehetőségekkel támogatja a hatékony tesztelést. 
+
+Az architektúra objektumorientált felépítéséből adódóan minden központi osztály saját, dedikált tesztfájlt kapott. Ezek az esetek teljesen elszigetelten vizsgálják a metódusok működését, az extrém szituációs bemeneteket (edge cases), valamint a játékszabályok (például szín és ütéskényszer) maradéktalan érvényesülését. 
+
+A \ref{fig:unit_test_results}. ábra a tesztkészlet futtatásának végeredményét szemlélteti a fejlesztői környezet termináljában, megerősítve, hogy az összes teszteset hibátlanul (zöld státusszal) lefutott.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{test.png}
+    \caption{Az egységtesztek sikeres lefutása a parancssorban}
+    \label{fig:unit_test_results}
+\end{figure}
+
+Az ábra igazolja, hogy a Jest mindössze 0,437 másodperc alatt hibátlanul lefuttatta mind az 5 tesztkészletet és az abban foglalt összesen 44 egységtesztet.
+
+Az alábbi táblázatok osztályonként (tesztfájlonként) részletezik a vizsgált eseteket és azok lefutási eredményeit.
+% --- CARD TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{A Card.test.js tesztesetei}
+    \label{tab:test_card} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & A \texttt{constructor} segítségével történő példányosítás helyességének ellenőrzése a megadott szín, típus és pontértékek alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & Az \texttt{isTrump()} metódus által végzett adulap-felismerés validálása a megadott aktuális aduszín alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+% --- DECK TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{A Deck.test.js tesztesetei}
+    \label{tab:test_deck} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & Annak ellenőrzése, hogy a \texttt{constructor} hívása után az \texttt{isEmpty()} metódus valóban üres paklit jelez-e. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & A \texttt{generate()} metódus által létrehozott kártyák pontos számának (20 darab) és típusának ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    3. & A \texttt{drawCard()} hívásakor bekövetkező kártyahúzás és a pakli méretcsökkenésének validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    4. & Az \texttt{isEmpty()} metódus helyes logikai visszatérési értékének vizsgálata a pakli teljes kiürülése után. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    5. & A \texttt{shuffle()} metódus futtatása után a pakli méretének (20 lap) változatlanságának ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    6. & A \texttt{shuffle()} algoritmus hatékonyságának vizsgálata a legfelső lapok vizsgálata alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+% --- PLAYER TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{A Player.test.js tesztesetei}
+    \label{tab:test_player} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & A \texttt{constructor} által beállított alapértékek (név, socketId, pont) helyességének ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & A \texttt{drawCard()} metódus működésének validálása a kártya játékos kezébe kerülése alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    3. & Az \texttt{addRoundPoints()} és \texttt{resetRoundPoints()} metódusok által végzett pontkezelés és nullázás ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    4. & A \texttt{clearHand()} metódus által végzett teljes kézürítés helyességének vizsgálata. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    5. & A \texttt{clearWonCards()} hívása után a megnyert lapok listájának törlődésének ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    6. & Az \texttt{addCardsToWonCards()} metódus tesztelése pontosan két kártya sikeres hozzáadásával. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    7. & Az \texttt{addCardsToWonCards()} metódus hibaágának ellenőrzése érvénytelen (üres) lista megadásakor. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    8. & A \texttt{removeCard()} metódus által végzett kártyaeltávolítás validálása index alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    9. & A \texttt{getAnnouncements()} metódus tesztelése érvényes 20 pontos bemondás felismerésével normál színből. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    10. & A \texttt{getAnnouncements()} metódus tesztelése érvényes 40 pontos bemondás felismerésével aduszínből. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    11. & A \texttt{getAnnouncements()} validálása üres visszatérési értékre, ha nincs bemondható pár a kézben. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    12. & A \texttt{playAnnouncement()} metódus sikerességének ellenőrzése az érték és a kijátszott kártya visszaadása alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    13. & A \texttt{playAnnouncement()} metódus hibaágának vizsgálata érvénytelen bemondás kísérletekor. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    14. & A \texttt{hasSuit()} metódus által végzett színellenőrzés helyességének validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    15. & A \texttt{hasTrump()} metódus tesztelése az aduszínű kártya meglétének felismerésére. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    16. & A \texttt{hasStrongerCard()} metódus validálása az erősebb lap meglétének felismerésére az ütéskényszerhez. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+% --- ENGINE TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{Az Engine.test.js tesztesetei}
+    \label{tab:test_engine} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & Az \texttt{Engine} \texttt{constructor} általi helyes inicializálásának ellenőrzése a játékosokkal és a socket mockkal. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & A \texttt{startRound()} metódus által végzett lapkiosztás és adubeállítás validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    3. & Az aktív játékos cseréjének ellenőrzése a \texttt{startRound()} metódus ismételt hívásakor. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    4. & A \texttt{switchTrumpCard()} metódus sikerességének vizsgálata érvényes aducsere esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    5. & A \texttt{switchTrumpCard()} metódus elutasításának ellenőrzése, ha a pakli már le van zárva. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    6. & Az \texttt{evaluateStrongerCard()} metódus által végzett kártya-kiértékelés validálása az adu és a laperősség alapján. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    7. & Az \texttt{isValidMove()} metódus tesztelése bármely lap kijátszásának engedélyezésére nyitott paklinál. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    8. & Az \texttt{isValidMove()} által végzett szín- és ütéskényszer ellenőrzés validálása zárt pakli esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    9. & Az \texttt{isValidMove()} által kényszerített aduhasználat ellenőrzése zárt paklinál. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    10. & A \texttt{close()} metódus által rögzített zárási adatok helyességének vizsgálata érvényes takaráskor. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    11. & A \texttt{calculateMatchPoints()} metódus tesztelése a megszokott takarás nélküli győzelmi pontok kiszámítására. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    12. & A \texttt{calculateMatchPoints()} validálása a takaró játékos győzelme esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    13. & A \texttt{calculateMatchPoints()} tesztelése a takaró játékos büntetésének kiszámítására veszteség esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    14. & Az \texttt{endRound()} metódus működésének és a teljes mérkőzés lezárásának (7 pont) ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+% --- ROOM TEST TABLE ---
+\vspace{1em}
+\begin{longtable}{| c | m{11.5cm} | c |}
+    \caption{A Room.test.js tesztesetei}
+    \label{tab:test_room} \\
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{\#} & \textbf{Teszteset leírása} & \textbf{Státusz} \\
+    \hline
+    \endhead
+    \hline
+    \endlastfoot
+
+    1. & A \texttt{Room} \texttt{constructor} általi helyes inicializálásának ellenőrzése a kliens és játékos adatokkal. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    2. & A \texttt{startGame()} metódus által kiváltott motorindítás és hálózati állapotközvetítés validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    3. & A \texttt{handleSwitchTrumpCard()} metódus sikeres lefutásának és a frissített állapot kiküldésének ellenőrzése. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    4. & Az érvénytelen aducsere esetén a \texttt{handleSwitchTrumpCard()} által küldött hibaüzenet validálása. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    5. & A \texttt{handleMove()} metódus által kezelt mérkőzésvég ellenőrzése azonnali bemondással történő győzelem esetén. & \cellcolor{green!40}\textbf{OK} \\ \hline
+    6. & A \texttt{broadcastState()} metódus által összeállított és kiküldött teljes játékállapot pontosságának vizsgálata. & \cellcolor{green!40}\textbf{OK} \\ \hline
+\end{longtable}
+
+\subsection{Tesztelés által befolyásolt döntések}
+\label{subsec:test_driven_decisions}
+
+A szoftver fejlesztése során a folyamatos manuális tesztelés több olyan hiányosságra is rávilágított, amelyek nem feltétlenül programhibák voltak, hanem főleg a felhasználói élményt és a játékmenet érthetőségét rontották. Ezen visszajelzések alapján több kritikus módosítást is eszközöltem a rendszeren:
+
+\begin{itemize}
+    \item \textbf{Vizuális visszacsatolás a játékmenet eseményeiről:} 
+    A kezdeti tesztfázisban a pakli takarása (zárása) vagy a 20/40 pontos bemondások során az ellenfél nem kapott egyértelmű jelzést arról, hogy mi történt, így a játékmenet zavarossá vált. Ezt orvosolva bevezettem egy értesítési rendszert, amely azonnal tájékoztatja a másik felet ezekről a stratégiai lépésekről, biztosítva a játék folyamatos követhetőségét. Ezeket az értesítéseket úgynevezett felugró ablakokkal oldottam meg, amellyek színnel is adnak információt: pl. narancsal jelenik meg, amikor az ellenfél játszik ki 20/40-et és kékkel ha mi játszunk ki.
+
+    \item \textbf{A körök kiértékelésének ütemezése:} 
+    Eredetileg, amikor a második játékos is kijátszotta a kártyáját, a rendszer azonnal elvégezte a kiértékelést, és a lapok azonnal eltűntek az asztalról. Ez zavaró volt, mivel a felhasználóknak nem maradt idejük vizuálisan feldolgozni az ütést. Ennek javítására bevezettem egy 2 másodperces késleltetést, amely alatt mindkét kijátszott kártya látható marad. Ez a rövid szünet segít a játékosoknak követni a pontszámítást és az ütés irányát, mielőtt a rendszer továbblépne a következő körre.
+
+    \item \textbf{A várólistáról való kilépés lehetősége:} 
+    A hálózati kommunikáció tesztelésekor kiderült, hogy miután a játékos elindította a keresést, nem volt lehetősége meggondolnia magát és elhagyni a várólistát. Ez kényelmetlen helyzetet teremtett hosszú várakozási idő esetén. A probléma megoldására a kereső felületet kiegészítettem egy "X" (megszakítás) gombbal, amely lehetővé teszi a keresési folyamat biztonságos leállítását és a főmenübe való visszatérést anélkül, hogy az oldalt újra kellene tölteni.
+\end{itemize}
+
+Ezek a módosítások jelentősen növelték a szoftver ergonómiáját és a játékélmény folytonosságát, bizonyítva a tesztelés fontosságát.
